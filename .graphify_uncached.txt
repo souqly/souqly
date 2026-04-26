@@ -1,0 +1,13 @@
+C:\Users\digit\Documents\Souqly\cahier-des-charges-catalogue-saas.md
+C:\Users\digit\Documents\Souqly\CLAUDE.md
+C:\Users\digit\Documents\Souqly\docs\README.md
+C:\Users\digit\Documents\Souqly\docs\brand\brand-guide.md
+C:\Users\digit\Documents\Souqly\docs\legal\cgu.md
+C:\Users\digit\Documents\Souqly\docs\product\personas.md
+C:\Users\digit\Documents\Souqly\docs\product\roadmap.md
+C:\Users\digit\Documents\Souqly\docs\security\audit-report.md
+C:\Users\digit\Documents\Souqly\public\file.svg
+C:\Users\digit\Documents\Souqly\public\globe.svg
+C:\Users\digit\Documents\Souqly\public\next.svg
+C:\Users\digit\Documents\Souqly\public\vercel.svg
+C:\Users\digit\Documents\Souqly\public\window.svg

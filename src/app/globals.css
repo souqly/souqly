@@ -1,0 +1,117 @@
+@import "tailwindcss";
+
+/* =========================================================
+   Design tokens CSS — Souqly (dark mode par défaut)
+   ========================================================= */
+
+:root {
+  --background: 248 250 252;       /* neutral-50 */
+  --foreground: 15 23 42;          /* neutral-900 */
+  --surface: 255 255 255;
+  --surface-elevated: 241 245 249;
+  --border: 226 232 240;           /* neutral-200 */
+  --border-strong: 148 163 184;    /* neutral-400 */
+  --muted: 100 116 139;            /* neutral-500 */
+  --primary: 79 70 229;            /* primary-600 */
+  --primary-foreground: 255 255 255;
+  --accent: 245 158 11;            /* accent-500 */
+  --accent-foreground: 15 23 42;
+}
+
+.dark {
+  --background: 15 23 42;          /* neutral-900 */
+  --foreground: 248 250 252;       /* neutral-50 */
+  --surface: 30 41 59;             /* neutral-800 */
+  --surface-elevated: 51 65 85;    /* neutral-700 */
+  --border: 51 65 85;              /* neutral-700 */
+  --border-strong: 100 116 139;    /* neutral-500 */
+  --muted: 100 116 139;            /* neutral-500 */
+  --primary: 99 102 241;           /* primary-500 */
+  --primary-foreground: 255 255 255;
+  --accent: 245 158 11;            /* accent-500 */
+  --accent-foreground: 15 23 42;
+}
+
+/* Dark mode par défaut */
+html {
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-bricolage);
+
+  /* === Extra font sizes === */
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
+  /* === Semantic color aliases === */
+  --color-success: #10B981;
+  --color-success-light: #D1FAE5;
+  --color-success-dark: #065F46;
+  --color-error: #EF4444;
+  --color-error-light: #FEE2E2;
+  --color-error-dark: #991B1B;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FEF3C7;
+  --color-warning-dark: #92400E;
+
+  /* === Shadow glow utilities === */
+  --shadow-glow-primary: 0 0 20px rgb(79 70 229 / 0.3);
+  --shadow-glow-accent: 0 0 20px rgb(245 158 11 / 0.3);
+  --shadow-dark-sm: 0 1px 3px 0 rgb(0 0 0 / 0.4);
+  --shadow-dark-md: 0 4px 6px -1px rgb(0 0 0 / 0.4);
+  --shadow-dark-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+
+  /* === Animation keyframes === */
+  --animate-fade-in: fade-in 200ms ease-out;
+  --animate-fade-up: fade-up 200ms ease-out;
+  --animate-scale-in: scale-in 150ms ease-out;
+  --animate-shimmer: shimmer 2s infinite linear;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to   { background-position: 200% 0; }
+}
+
+body {
+  @apply bg-slate-900 text-slate-50;
+  font-family: var(--font-inter, Inter, system-ui, sans-serif);
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-bricolage, 'Bricolage Grotesque', system-ui, sans-serif);
+}
+
+/* Scrollbar custom dark */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-900;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-600 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-500;
+}

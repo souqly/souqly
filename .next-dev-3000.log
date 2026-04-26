@@ -1,0 +1,18 @@
+
+> souqly@0.1.0 dev
+> next dev --port 3000
+
+▲ Next.js 16.2.4 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://10.5.0.2:3000
+✓ Ready in 1743ms
+
+✓ Compiled in 57ms
+✓ Compiled in 23ms
+✓ Compiled in 12ms
+○ Compiling / ...
+ GET / 200 in 14.1s (next.js: 12.2s, proxy.ts: 295ms, application-code: 1622ms)
+ GET / 200 in 703ms (next.js: 109ms, proxy.ts: 100ms, application-code: 494ms)
+✓ Compiled in 1115ms
+ GET / 200 in 1088ms (next.js: 311ms, proxy.ts: 300ms, application-code: 476ms)
+ GET / 200 in 226ms (next.js: 31ms, proxy.ts: 17ms, application-code: 178ms)
