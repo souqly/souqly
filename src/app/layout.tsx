@@ -8,11 +8,14 @@ const inter = Inter({
   display: 'swap',
 })
 
+// Poids 400 et 500 retirés : aucun titre (font-heading) ne les utilise.
+// Seuls font-semibold (600), font-bold (700) et font-extrabold (800) sont actifs.
+// Économie : ~15–20 KB de font data.
 const bricolage = Bricolage_Grotesque({
   subsets: ['latin'],
   variable: '--font-bricolage',
   display: 'swap',
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['600', '700', '800'],
 })
 
 export const metadata: Metadata = {
