@@ -18,6 +18,7 @@ export const metadata: Metadata = {
 // ---------------------------------------------------------------------------
 
 type MerchantSettings = {
+  id: string
   name: string
   description: string | null
   logo_url: string | null
@@ -43,7 +44,7 @@ export default async function ParametresPage() {
   const { data: settings } = await supabase
     .from('merchants')
     .select(
-      'name, description, logo_url, whatsapp_number, telegram_username, message_template, subscription_status',
+      'id, name, description, logo_url, whatsapp_number, telegram_username, message_template, subscription_status',
     )
     .eq('user_id', user.id)
     .single<MerchantSettings>()
@@ -62,6 +63,7 @@ export default async function ParametresPage() {
 
       {/* Section 1 : Infos boutique */}
       <SettingsShopForm
+        merchantId={settings.id}
         name={settings.name}
         description={settings.description}
         logo_url={settings.logo_url}
