@@ -322,7 +322,7 @@ export default async function MerchantDetailPage({
                 : 'Réactiver ce marchand lui restituera l\'accès au dashboard et à son catalogue.'}
             </p>
             {isActive && (
-              <form action={suspendMerchant}>
+              <form action={async (fd) => { await suspendMerchant(fd) }}>
                 <input type="hidden" name="merchant_id" value={merchant.id} />
                 <button
                   type="submit"
@@ -333,7 +333,7 @@ export default async function MerchantDetailPage({
               </form>
             )}
             {isSuspended && (
-              <form action={reactivateMerchant}>
+              <form action={async (fd) => { await reactivateMerchant(fd) }}>
                 <input type="hidden" name="merchant_id" value={merchant.id} />
                 <button
                   type="submit"
