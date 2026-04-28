@@ -112,6 +112,7 @@ function CategoryItem({
 
 export function CategoriesClient({
   categories,
+  merchantId,
 }: CategoriesClientProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [editCategory, setEditCategory] = useState<CategoryRow | null>(null)
@@ -173,6 +174,7 @@ export function CategoriesClient({
         open={modalOpen}
         onClose={handleClose}
         editCategory={editCategory}
+        merchantId={merchantId}
       />
     </>
   )
