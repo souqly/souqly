@@ -23,6 +23,11 @@ interface CategoriesClientProps {
   merchantId: string
 }
 
+interface CategoryItemProps {
+  category: CategoryRow
+  onEdit: (c: CategoryRow) => void
+}
+
 // ---------------------------------------------------------------------------
 // Ligne catégorie
 // ---------------------------------------------------------------------------

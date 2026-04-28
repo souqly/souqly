@@ -1,16 +1,13 @@
 import { cookies } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase/server'
 import type { CatalogData, CatalogResult, Product } from '@/lib/types/catalog'
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
-function storageUrl(path: string) {
-  return `${SUPABASE_URL}/storage/v1/object/public/product-images/${path}`
-}
 import { formatPrice } from '@/lib/utils/format'
 import { AddToCartButton } from './_components/AddToCartButton'
+import { ImageGallery } from './_components/ImageGallery'
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
 
 // ---------------------------------------------------------------------------
 // Types
@@ -132,47 +129,12 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16">
-          {/* Galerie images */}
-          <div className="space-y-3">
-            {/* Image principale */}
-            <div className="aspect-square rounded-2xl overflow-hidden bg-neutral-900 border border-white/5">
-              {primaryImage ? (
-                <Image
-                  src={storageUrl(primaryImage.storage_path)}
-                  alt={product.name}
-                  fill
-                  className="object-cover"
-                  priority
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-6xl font-bold text-neutral-800">?</span>
-                </div>
-              )}
-            </div>
-
-            {/* Vignettes (si plusieurs images) */}
-            {sortedImages.length > 1 && (
-              <div className="grid grid-cols-5 gap-2">
-                {sortedImages.map((img) => (
-                  <div
-                    key={img.id}
-                    className="aspect-square rounded-lg overflow-hidden bg-neutral-900 border border-white/5"
-                  >
-                    <Image
-                      src={storageUrl(img.storage_path)}
-                      alt=""
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 20vw, 10vw"
-                    />
-                  </div>
-                ))}
-              </div>
-            )}
-
-          </div>
+          {/* Galerie images — Client Component interactif */}
+          <ImageGallery
+            images={sortedImages}
+            productName={product.name}
+            storageBaseUrl={SUPABASE_URL}
+          />
 
           {/* Infos produit */}
           <div className="flex flex-col gap-6">

@@ -6,6 +6,23 @@ import type { Product } from '@/lib/types/catalog'
 import { formatPrice } from '@/lib/utils/format'
 
 // ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+
+/**
+ * Construit l'URL complète Supabase Storage à partir d'un storage_path brut.
+ * Retourne null si le chemin est null ou vide.
+ */
+function toStorageUrl(storagePath: string | null): string | null {
+  if (!storagePath) return null
+  // Si l'URL est déjà complète (ex: passée depuis QuickAddButton), la retourner telle quelle
+  if (storagePath.startsWith('http')) return storagePath
+  return `${SUPABASE_URL}/storage/v1/object/public/product-images/${storagePath}`
+}
+
+// ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
@@ -37,7 +54,7 @@ export function AddToCartButton({ product, merchantSlug, primaryImageUrl }: AddT
       reference: product.reference,
       price_cents: product.price_cents,
       quantity,
-      image_url: primaryImageUrl,
+      image_url: toStorageUrl(primaryImageUrl),
     })
 
     setAdded(true)

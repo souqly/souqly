@@ -5,8 +5,11 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sendWelcomeEmail } from '@/lib/emails/send'
 import { getSiteUrl } from '@/lib/env'
+import {
+  sendMerchantApprovedEmail,
+  sendMerchantRejectedEmail,
+} from '@/lib/utils/email'
 
 // ---------------------------------------------------------------------------
 // Types

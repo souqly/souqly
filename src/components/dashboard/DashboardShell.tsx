@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   Store,
+  ShoppingBag,
 } from 'lucide-react'
 import { signOut } from '@/lib/actions/auth'
 
@@ -60,6 +61,11 @@ function buildNavItems(slug: string): NavItem[] {
       label: 'Catégories',
       href: '/dashboard/categories',
       icon: Tag,
+    },
+    {
+      label: 'Commandes',
+      href: '/dashboard/commandes',
+      icon: ShoppingBag,
     },
     {
       label: 'Paramètres',

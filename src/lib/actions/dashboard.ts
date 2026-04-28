@@ -710,6 +710,104 @@ export async function updateMerchantSettings(
   return { success: true }
 }
 
+// ---------------------------------------------------------------------------
+// LOGO MARCHAND
+// ---------------------------------------------------------------------------
+
+const updateMerchantLogoSchema = z.object({
+  logo_url: z
+    .string()
+    .url('URL invalide.')
+    .refine(
+      (url) => url.includes('supabase'),
+      'URL de stockage invalide.',
+    ),
+})
+
+export async function updateMerchantLogo(
+  logoUrl: string,
+): Promise<ActionResult> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = updateMerchantLogoSchema.safeParse({ logo_url: logoUrl })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'URL invalide.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('merchants')
+    .update({
+      logo_url: parsed.data.logo_url,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', auth.merchant.id)
+
+  if (error) return { error: 'Erreur lors de la mise à jour du logo.' }
+
+  revalidatePath('/dashboard/parametres')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+// ---------------------------------------------------------------------------
+// IMAGE DE COUVERTURE CATEGORIE
+// ---------------------------------------------------------------------------
+
+const updateCategoryImageSchema = z.object({
+  categoryId: z.string().uuid('Identifiant invalide.'),
+  image_url: z
+    .string()
+    .url('URL invalide.')
+    .refine(
+      (url) => url.includes('supabase'),
+      'URL de stockage invalide.',
+    ),
+})
+
+export async function updateCategoryImage(
+  categoryId: string,
+  imageUrl: string,
+): Promise<ActionResult> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = updateCategoryImageSchema.safeParse({
+    categoryId,
+    image_url: imageUrl,
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Paramètres invalides.' }
+  }
+
+  const supabase = await createClient()
+
+  // Vérifier l'appartenance de la catégorie
+  const { data: existing } = await supabase
+    .from('categories')
+    .select('merchant_id')
+    .eq('id', parsed.data.categoryId)
+    .single<{ merchant_id: string }>()
+
+  if (!existing || existing.merchant_id !== auth.merchant.id) {
+    return { error: 'Catégorie introuvable.' }
+  }
+
+  const { error } = await supabase
+    .from('categories')
+    .update({
+      cover_image_url: parsed.data.image_url,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', parsed.data.categoryId)
+
+  if (error) return { error: 'Erreur lors de la mise à jour de l\'image.' }
+
+  revalidatePath('/dashboard/categories')
+  return { success: true }
+}
+
 const updateAccessCodeSchema = z.object({
   new_code: z
     .string()

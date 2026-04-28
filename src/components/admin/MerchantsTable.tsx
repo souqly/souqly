@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTransition, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import { suspendMerchant, reactivateMerchant } from '@/lib/actions/admin'
@@ -161,6 +162,9 @@ export function MerchantsTable({ merchants }: MerchantsTableProps) {
             <th scope="col" className="text-right text-xs font-medium text-neutral-500 px-5 py-3">
               Actions
             </th>
+            <th scope="col" className="text-right text-xs font-medium text-neutral-500 px-5 py-3">
+              &nbsp;
+            </th>
           </tr>
         </thead>
         <tbody className="divide-y divide-white/5">
@@ -186,6 +190,14 @@ export function MerchantsTable({ merchants }: MerchantsTableProps) {
                   merchantId={m.id}
                   isActive={m.status === 'active'}
                 />
+              </td>
+              <td className="px-5 py-3 text-right">
+                <Link
+                  href={`/admin/marchands/${m.id}`}
+                  className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors whitespace-nowrap"
+                >
+                  Voir →
+                </Link>
               </td>
             </tr>
           ))}
