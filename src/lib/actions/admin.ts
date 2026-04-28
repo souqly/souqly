@@ -125,7 +125,7 @@ export async function approveApplication(
 
   // Envoi de l'email de bienvenue (fire-and-forget : ne pas bloquer en cas d'échec email)
   const loginUrl = `${getSiteUrl()}/login`
-  sendWelcomeEmail(result.email, result.name, loginUrl).catch(() => {})
+  sendMerchantApprovedEmail({ to: result.email, merchantName: result.name, dashboardUrl: loginUrl }).catch(() => {})
 
   revalidatePath('/admin/candidatures')
 
