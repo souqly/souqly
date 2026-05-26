@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev server logs
+.next-dev-*.log
+.next-dev-*.err.log
+
+# graphify cache (généré automatiquement)
+graphify-out/cache/
