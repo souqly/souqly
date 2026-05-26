@@ -18,7 +18,17 @@
       "Bash(powershell -Command \"py -3.14 -c \\\\\"import graphify; print\\('OK'\\)\\\\\"\")",
       "Bash(powershell -Command \"py -3.14 -c \\\\\"import sys; open\\('.graphify_python', 'w'\\).write\\(sys.executable\\)\\\\\"\")",
       "Bash(powershell -Command \"& 'C:\\\\Users\\\\digit\\\\AppData\\\\Local\\\\Python\\\\pythoncore-3.14-64\\\\python.exe' _graphify_ast.py\")",
-      "Bash(powershell -Command \"& 'C:\\\\Users\\\\digit\\\\AppData\\\\Local\\\\Python\\\\pythoncore-3.14-64\\\\python.exe' _graphify_cache.py\")"
+      "Bash(powershell -Command \"& 'C:\\\\Users\\\\digit\\\\AppData\\\\Local\\\\Python\\\\pythoncore-3.14-64\\\\python.exe' _graphify_cache.py\")",
+      "WebSearch",
+      "WebFetch(domain:www.kiwik.net)",
+      "Bash(npx tsc:*)",
+      "Bash(xargs grep:*)",
+      "Bash(npm run:*)",
+      "Bash(git add *)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\digit\\Documents\\Souqly\\src\\app\\dashboard",
+      "c:\\Users\\digit\\Documents\\Souqly\\src\\app\\admin\\marchands\\[id]"
     ]
   },
   "hooks": {
