@@ -1,0 +1,493 @@
+{
+  "name": "Souqly — Génération contenu hebdomadaire",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "weeksInterval": 1,
+              "triggerAtDay": [1],
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0001-0001-0001-a1b2c3d40001",
+      "name": "Tous les lundis à 8h",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "field-001",
+              "name": "brand_context",
+              "value": "Tu es le social media manager de Souqly, un SaaS catalogue multi-marchands pour revendeurs et artisans (style Yupoo FR, marché francophone). Le produit permet aux marchands de créer un catalogue pro protégé par code d'accès, avec commande via WhatsApp. 29€/mois, 14 jours gratuits sans CB. Ton de marque : direct, confiant, professionnel sans arrogance. Tu parles à des revendeuses mode, des grossistes franco-maghrébins, des revendeurs sneakers, des artisanes diaspora. Utilise leur langage (tutoiement, expressions authentiques, pas de langue de bois).",
+              "type": "string"
+            },
+            {
+              "id": "field-002",
+              "name": "semaine_numero",
+              "value": "={{ new Date().toLocaleDateString('fr-FR', {week: 'numeric', year: 'numeric'}) }}",
+              "type": "string"
+            },
+            {
+              "id": "field-003",
+              "name": "date_lundi",
+              "value": "={{ new Date().toLocaleDateString('fr-FR') }}",
+              "type": "string"
+            }
+          ]
+        }
+      },
+      "id": "a1b2c3d4-0002-0002-0002-a1b2c3d40002",
+      "name": "Contexte Souqly",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 4096,\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"{{ $json.brand_context }}\\n\\nGénère le plan de contenu pour la semaine du {{ $json.date_lundi }}.\\n\\nProduis EXACTEMENT ce JSON (rien d'autre, pas de markdown) :\\n{\\n  \\\"posts\\\": [\\n    {\\n      \\\"id\\\": 1,\\n      \\\"plateforme\\\": \\\"instagram_reel\\\",\\n      \\\"persona_cible\\\": \\\"Yasmine (revendeuse mode 28 ans Paris 93)\\\",\\n      \\\"accroche\\\": \\\"[première phrase du script vidéo, max 8 mots, ultra-percutante]\\\",\\n      \\\"script_video\\\": \\\"[script complet seconde par seconde, 15-30s, avec texte à l'écran entre crochets]\\\",\\n      \\\"caption\\\": \\\"[caption Instagram complet avec emojis, call-to-action vers le lien en bio, 150 mots max]\\\",\\n      \\\"hashtags\\\": \\\"[20 hashtags pertinents séparés par des espaces]\\\",\\n      \\\"heure_publication\\\": \\\"19:00\\\"\\n    },\\n    {\\n      \\\"id\\\": 2,\\n      \\\"plateforme\\\": \\\"instagram_story\\\",\\n      \\\"persona_cible\\\": \\\"Samira (artisane cosmétique diaspora)\\\",\\n      \\\"slide_1\\\": \\\"[texte slide 1, question ou accroche]\\\",\\n      \\\"slide_2\\\": \\\"[texte slide 2, développement]\\\",\\n      \\\"slide_3\\\": \\\"[texte slide 3 avec CTA et lien swipe-up ou sticker lien]\\\",\\n      \\\"heure_publication\\\": \\\"12:00\\\"\\n    },\\n    {\\n      \\\"id\\\": 3,\\n      \\\"plateforme\\\": \\\"tiktok\\\",\\n      \\\"persona_cible\\\": \\\"Jordan (revendeur sneakers 24 ans)\\\",\\n      \\\"hook\\\": \\\"[accroche 0-3 secondes, doit faire stopper le scroll]\\\",\\n      \\\"script_video\\\": \\\"[script TikTok 30-60s, ton décontracté, authentique, pas corporate]\\\",\\n      \\\"caption\\\": \\\"[caption TikTok court, max 150 chars + hashtags]\\\",\\n      \\\"hashtags\\\": \\\"[15 hashtags TikTok]\\\",\\n      \\\"heure_publication\\\": \\\"20:00\\\"\\n    },\\n    {\\n      \\\"id\\\": 4,\\n      \\\"plateforme\\\": \\\"instagram_carousel\\\",\\n      \\\"persona_cible\\\": \\\"Alexandre (gérant boutique mode Bordeaux)\\\",\\n      \\\"titre_slide_1\\\": \\\"[titre accrocheur slide de couverture]\\\",\\n      \\\"slides\\\": [\\\"[slide 2]\\\", \\\"[slide 3]\\\", \\\"[slide 4]\\\", \\\"[slide 5 CTA]\\\"],\\n      \\\"caption\\\": \\\"[caption avec CTA]\\\",\\n      \\\"hashtags\\\": \\\"[20 hashtags]\\\",\\n      \\\"heure_publication\\\": \\\"10:00\\\"\\n    },\\n    {\\n      \\\"id\\\": 5,\\n      \\\"plateforme\\\": \\\"tiktok\\\",\\n      \\\"persona_cible\\\": \\\"Yasmine (revendeuse mode)\\\",\\n      \\\"hook\\\": \\\"[accroche 0-3s]\\\",\\n      \\\"script_video\\\": \\\"[script 15-30s, format confessionnel ou avant/après]\\\",\\n      \\\"caption\\\": \\\"[caption TikTok]\\\",\\n      \\\"hashtags\\\": \\\"[15 hashtags]\\\",\\n      \\\"heure_publication\\\": \\\"18:30\\\"\\n    }\\n  ]\\n}\"\n    }\n  ]\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "a1b2c3d4-0003-0003-0003-a1b2c3d40003",
+      "name": "Claude — Génère 5 posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-anthropic-001",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Extraire le contenu texte de la réponse Claude\nconst claudeResponse = $input.first().json;\nconst content = claudeResponse.content[0].text;\n\n// Parser le JSON généré par Claude\nlet posts;\ntry {\n  posts = JSON.parse(content);\n} catch(e) {\n  // Si Claude a mis du markdown autour, on extrait le JSON\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  posts = JSON.parse(jsonMatch[0]);\n}\n\n// Retourner chaque post comme un item séparé\nreturn posts.posts.map(post => ({ json: post }));"
+      },
+      "id": "a1b2c3d4-0004-0004-0004-a1b2c3d40004",
+      "name": "Parser les posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "batchSize": 1,
+        "options": {}
+      },
+      "id": "a1b2c3d4-0005-0005-0005-a1b2c3d40005",
+      "name": "Pour chaque post",
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "rules": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.plateforme }}",
+                    "rightValue": "instagram",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Instagram"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict"
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.plateforme }}",
+                    "rightValue": "tiktok",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "TikTok"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0006-0006-0006-a1b2c3d40006",
+      "name": "Quelle plateforme ?",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prépare le caption final Instagram\nconst post = $input.first().json;\n\n// Pour les Stories, on retourne les slides\nif (post.plateforme === 'instagram_story') {\n  return [{\n    json: {\n      ...post,\n      type: 'story',\n      // Les Stories ne se postent pas via API Graph basic display — on génère une notification\n      notification: `📱 STORY À POSTER MANUELLEMENT\\nPersona: ${post.persona_cible}\\nSlide 1: ${post.slide_1}\\nSlide 2: ${post.slide_2}\\nSlide 3: ${post.slide_3}\\nHeure: ${post.heure_publication}`\n    }\n  }];\n}\n\n// Pour Reels et Carousels\nconst caption = post.caption + '\\n\\n' + post.hashtags;\n\nreturn [{\n  json: {\n    ...post,\n    caption_final: caption,\n    // Note: les Reels nécessitent une URL vidéo publique\n    // Pour les carousels statiques, on peut utiliser des images\n    pret_a_poster: post.plateforme !== 'instagram_reel' // Reels nécessitent vidéo\n  }\n}];"
+      },
+      "id": "a1b2c3d4-0007-0007-0007-a1b2c3d40007",
+      "name": "Prépare post Instagram",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $vars.INSTAGRAM_USER_ID }}/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"caption\": \"{{ $json.caption_final }}\",\n  \"media_type\": \"{{ $json.plateforme === 'instagram_carousel' ? 'CAROUSEL' : 'IMAGE' }}\",\n  \"image_url\": \"{{ $vars.IG_PLACEHOLDER_IMAGE_URL }}\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0008-0008-0008-a1b2c3d40008",
+      "name": "IG — Créer container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 160],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-meta-001",
+          "name": "Meta Graph API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $vars.INSTAGRAM_USER_ID }}/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"creation_id\": \"{{ $json.id }}\"\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0009-0009-0009-a1b2c3d40009",
+      "name": "IG — Publier post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 160],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-meta-001",
+          "name": "Meta Graph API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prépare le post TikTok\nconst post = $input.first().json;\nconst caption = post.caption + ' ' + post.hashtags;\n\nreturn [{\n  json: {\n    ...post,\n    caption_final: caption.substring(0, 2200), // limite TikTok\n    // Note: TikTok Content Posting API nécessite une URL vidéo\n    // Le script est généré — la vidéo doit être créée séparément\n    script_pour_creation: `🎬 TIKTOK À CRÉER\\nPersona: ${post.persona_cible}\\nHook (0-3s): ${post.hook}\\nScript: ${post.script_video}\\nCaption: ${caption.substring(0, 150)}\\nHeure: ${post.heure_publication}`\n  }\n}];"
+      },
+      "id": "a1b2c3d4-0010-0010-0010-a1b2c3d40010",
+      "name": "Prépare post TikTok",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 420]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://open.tiktokapis.com/v2/post/publish/content/init/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post_info\": {\n    \"title\": \"{{ $json.caption_final.substring(0, 150) }}\",\n    \"privacy_level\": \"PUBLIC_TO_EVERYONE\",\n    \"disable_duet\": false,\n    \"disable_comment\": false,\n    \"disable_stitch\": false\n  },\n  \"source_info\": {\n    \"source\": \"PULL_FROM_URL\",\n    \"video_url\": \"{{ $vars.TIKTOK_PLACEHOLDER_VIDEO_URL }}\"\n  }\n}",
+        "options": {}
+      },
+      "id": "a1b2c3d4-0011-0011-0011-a1b2c3d40011",
+      "name": "TikTok — Init upload",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 420],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-tiktok-001",
+          "name": "TikTok API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $vars.TELEGRAM_CHAT_ID }}",
+        "text": "=✅ *Contenu Souqly généré cette semaine*\n\n📸 Instagram Reel — Yasmine persona\n📱 Instagram Story — Samira persona  \n🎵 TikTok — Jordan persona\n📊 Instagram Carousel — Alexandre persona\n🎬 TikTok — Yasmine persona\n\n🤖 Contenu généré par Claude le {{ new Date().toLocaleDateString('fr-FR') }}\n\n💡 Les scripts vidéo sont dans la feuille Google Sheets liée.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "a1b2c3d4-0012-0012-0012-a1b2c3d40012",
+      "name": "Notif Telegram — Récap",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [2220, 300],
+      "credentials": {
+        "telegramApi": {
+          "id": "cred-telegram-001",
+          "name": "Telegram Bot Souqly"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Contenu",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ new Date().toLocaleDateString('fr-FR') }}",
+            "plateforme": "={{ $json.plateforme }}",
+            "persona": "={{ $json.persona_cible }}",
+            "script_ou_caption": "={{ $json.script_video || $json.caption_final || $json.script_pour_creation }}",
+            "hashtags": "={{ $json.hashtags }}",
+            "heure": "={{ $json.heure_publication }}",
+            "statut": "Généré"
+          }
+        },
+        "options": {}
+      },
+      "id": "a1b2c3d4-0013-0013-0013-a1b2c3d40013",
+      "name": "Log Google Sheets",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2000, 420],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cred-gsheets-001",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Tous les lundis à 8h": {
+      "main": [
+        [
+          {
+            "node": "Contexte Souqly",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contexte Souqly": {
+      "main": [
+        [
+          {
+            "node": "Claude — Génère 5 posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude — Génère 5 posts": {
+      "main": [
+        [
+          {
+            "node": "Parser les posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser les posts": {
+      "main": [
+        [
+          {
+            "node": "Pour chaque post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pour chaque post": {
+      "main": [
+        [
+          {
+            "node": "Quelle plateforme ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Quelle plateforme ?": {
+      "Instagram": [
+        [
+          {
+            "node": "Prépare post Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "TikTok": [
+        [
+          {
+            "node": "Prépare post TikTok",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prépare post Instagram": {
+      "main": [
+        [
+          {
+            "node": "IG — Créer container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG — Créer container": {
+      "main": [
+        [
+          {
+            "node": "IG — Publier post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG — Publier post": {
+      "main": [
+        [
+          {
+            "node": "Notif Telegram — Récap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prépare post TikTok": {
+      "main": [
+        [
+          {
+            "node": "TikTok — Init upload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "TikTok — Init upload": {
+      "main": [
+        [
+          {
+            "node": "Log Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Notif Telegram — Récap",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "v1-content-generation",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "souqly-n8n-instance"
+  },
+  "id": "souqly-wf-001",
+  "tags": [
+    {
+      "createdAt": "2026-04-29T00:00:00.000Z",
+      "updatedAt": "2026-04-29T00:00:00.000Z",
+      "id": "tag-001",
+      "name": "Souqly"
+    },
+    {
+      "createdAt": "2026-04-29T00:00:00.000Z",
+      "updatedAt": "2026-04-29T00:00:00.000Z",
+      "id": "tag-002",
+      "name": "Social Media"
+    }
+  ]
+}

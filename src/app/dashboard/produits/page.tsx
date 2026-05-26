@@ -39,6 +39,11 @@ type CategoryOption = {
   name: string
 }
 
+type BrandOption = {
+  id: string
+  name: string
+}
+
 type MerchantRow = {
   id: string
 }
@@ -64,16 +69,21 @@ export default async function ProduitsPage() {
 
   if (!merchant) redirect('/dashboard')
 
-  const [{ data: products }, { data: categories }] = await Promise.all([
+  const [{ data: products }, { data: categories }, { data: brands }] = await Promise.all([
     supabase
       .from('products')
       .select(
-        'id, name, description, reference, price_cents, is_available, position, category_id, product_images(id, storage_path, is_primary, position)',
+        'id, name, description, reference, price_cents, is_available, position, category_id, brand_id, product_images(id, storage_path, is_primary, position)',
       )
       .eq('merchant_id', merchant.id)
       .order('position', { ascending: true }),
     supabase
       .from('categories')
+      .select('id, name')
+      .eq('merchant_id', merchant.id)
+      .order('name', { ascending: true }),
+    supabase
+      .from('brands')
       .select('id, name')
       .eq('merchant_id', merchant.id)
       .order('name', { ascending: true }),
@@ -84,6 +94,7 @@ export default async function ProduitsPage() {
       <ProductsClient
         products={(products as ProductRow[]) ?? []}
         categories={(categories as CategoryOption[]) ?? []}
+        brands={(brands as BrandOption[]) ?? []}
         merchantId={merchant.id}
       />
     </div>

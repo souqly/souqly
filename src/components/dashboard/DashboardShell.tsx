@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   Package,
   Tag,
+  Bookmark,
   Settings,
   ExternalLink,
   LogOut,
@@ -61,6 +62,11 @@ function buildNavItems(slug: string): NavItem[] {
       label: 'Catégories',
       href: '/dashboard/categories',
       icon: Tag,
+    },
+    {
+      label: 'Marques',
+      href: '/dashboard/marques',
+      icon: Bookmark,
     },
     {
       label: 'Commandes',

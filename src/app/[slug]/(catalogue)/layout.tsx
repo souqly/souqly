@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { CatalogProvider } from '@/context/catalog-context'
 import type { CatalogData, CatalogResult } from '@/lib/types/catalog'
+import { getTheme, themeToCSS } from '@/lib/merchant-themes'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -67,6 +68,16 @@ export default async function CatalogueLayout({ children, params }: LayoutProps)
 
   const catalogData = result as CatalogData
 
-  // 3. Injection des données dans le Context via le Provider client
-  return <CatalogProvider data={catalogData}>{children}</CatalogProvider>
+  // 3. Résolution du thème visuel
+  const theme = getTheme(catalogData.merchant.catalog_theme ?? 'indigo-pro')
+  const cssVars = themeToCSS(theme) as React.CSSProperties
+
+  // 4. Injection des données dans le Context via le Provider client
+  return (
+    <CatalogProvider data={catalogData}>
+      <div style={cssVars} data-theme={theme.id} data-dark={theme.isDark ? 'true' : 'false'}>
+        {children}
+      </div>
+    </CatalogProvider>
+  )
 }

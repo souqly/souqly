@@ -1,0 +1,435 @@
+{
+  "name": "Souqly — Automatisation DMs Instagram",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "instagram-webhook",
+        "authentication": "none",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "b1c2d3e4-0001-0001-0001-b1c2d3e40001",
+      "name": "Webhook — DM Instagram entrant",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "souqly-ig-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Gestion de la vérification webhook Meta (GET) + messages entrants (POST)\nconst req = $input.first().json;\n\n// Vérification initiale Meta (requête GET lors de la config)\nif (req.query && req.query['hub.mode'] === 'subscribe') {\n  const VERIFY_TOKEN = $vars.META_WEBHOOK_VERIFY_TOKEN;\n  if (req.query['hub.verify_token'] === VERIFY_TOKEN) {\n    return [{ json: { type: 'verification', challenge: req.query['hub.challenge'] } }];\n  } else {\n    throw new Error('Token de vérification invalide');\n  }\n}\n\n// Traitement des messages entrants\nconst body = req.body;\nif (!body || !body.entry) {\n  return [{ json: { type: 'ignored', reason: 'Pas de body valide' } }];\n}\n\nconst messages = [];\n\nfor (const entry of body.entry) {\n  for (const messaging of (entry.messaging || [])) {\n    // Ignorer les messages envoyés par nous-mêmes\n    if (messaging.message && !messaging.message.is_echo) {\n      messages.push({\n        json: {\n          type: 'dm',\n          sender_id: messaging.sender.id,\n          recipient_id: messaging.recipient.id,\n          timestamp: messaging.timestamp,\n          message_text: messaging.message.text || '',\n          message_id: messaging.message.mid,\n          attachments: messaging.message.attachments || []\n        }\n      });\n    }\n  }\n}\n\nif (messages.length === 0) {\n  return [{ json: { type: 'ignored', reason: 'Aucun DM textuel' } }];\n}\n\nreturn messages;"
+      },
+      "id": "b1c2d3e4-0002-0002-0002-b1c2d3e40002",
+      "name": "Extraire le DM",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-001",
+              "leftValue": "={{ $json.type }}",
+              "rightValue": "dm",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1c2d3e4-0003-0003-0003-b1c2d3e40003",
+      "name": "Est un vrai DM ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "OK",
+        "options": {}
+      },
+      "id": "b1c2d3e4-0004-0004-0004-b1c2d3e40004",
+      "name": "Répondre OK à Meta",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 460]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            },
+            {
+              "name": "content-type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"claude-sonnet-4-6\",\n  \"max_tokens\": 1024,\n  \"system\": \"Tu es l'assistant DM Instagram de Souqly, un SaaS catalogue pour revendeurs et artisans. Ton rôle : répondre aux DMs de manière naturelle, courte (2-3 phrases max), en tutoiement, et qualifier les leads.\\n\\nSouqly en bref :\\n- Catalogue produit pro en ligne, protégé par code d'accès\\n- Les clients commandent via WhatsApp/Telegram directement\\n- 29€/mois, 14 jours gratuits SANS carte bancaire\\n- Zéro commission sur les ventes\\n- Remplace Yupoo, les PDFs et les partages Instagram manuels\\n- Prêt en 10 minutes, aucune compétence technique requise\\n- Lien d'inscription : https://souqly.fr/inscription\\n\\nPersonas types :\\n- Revendeuses mode (envoient des PDFs, utilisent WhatsApp)\\n- Grossistes franco-maghrébins (utilisent Yupoo)\\n- Revendeurs sneakers/streetwear (cherchent du pro et rapide)\\n- Artisanes diaspora (cosmétiques, textile, pas de site)\\n\\nTon style de réponse :\\n- Naturel, pas corporate\\n- Tutoiement systématique\\n- Max 3 lignes\\n- Toujours terminer par un CTA clair (essayer, voir une démo, le lien)\\n- Si la personne est hésitante : mettre en avant le trial gratuit sans CB\\n- Si elle mentionne Yupoo : rassurer sur la migration facile\\n\\nTu dois aussi évaluer le score de qualification du lead (0-10) :\\n- 8-10 : Très chaud (demande le prix, veut s'inscrire, mentionne un problème concret)\\n- 5-7 : Intéressé (pose des questions, curieux)\\n- 0-4 : Froid (mauvais contact, spam, hors sujet)\\n\\nRéponds TOUJOURS en JSON strict :\\n{\\n  \\\"reponse_dm\\\": \\\"[ta réponse naturelle ici]\\\",\\n  \\\"score_lead\\\": [0-10],\\n  \\\"persona_detecte\\\": \\\"[revendeuse_mode|grossiste|sneakers|artisane|autre]\\\",\\n  \\\"intention\\\": \\\"[curiosite|demande_prix|probleme_concret|inscription|hors_sujet]\\\",\\n  \\\"note_interne\\\": \\\"[observation courte pour le dashboard, pas envoyée au lead]\\\"\\n}\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": \"DM reçu : {{ $json.message_text }}\"\n    }\n  ]\n}",
+        "options": {}
+      },
+      "id": "b1c2d3e4-0005-0005-0005-b1c2d3e40005",
+      "name": "Claude — Analyse et répond",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-anthropic-001",
+          "name": "Anthropic API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const claudeResponse = $input.first().json;\nconst originalDM = $('Extraire le DM').first().json;\n\n// Parser la réponse Claude\nconst content = claudeResponse.content[0].text;\nlet analysis;\ntry {\n  analysis = JSON.parse(content);\n} catch(e) {\n  const jsonMatch = content.match(/\\{[\\s\\S]*\\}/);\n  analysis = JSON.parse(jsonMatch[0]);\n}\n\nreturn [{\n  json: {\n    // Données originales du DM\n    sender_id: originalDM.sender_id,\n    message_original: originalDM.message_text,\n    timestamp: originalDM.timestamp,\n    // Analyse Claude\n    reponse_dm: analysis.reponse_dm,\n    score_lead: analysis.score_lead,\n    persona_detecte: analysis.persona_detecte,\n    intention: analysis.intention,\n    note_interne: analysis.note_interne,\n    // Drapeaux\n    lead_chaud: analysis.score_lead >= 7,\n    lead_moyen: analysis.score_lead >= 4 && analysis.score_lead < 7,\n    hors_sujet: analysis.score_lead < 2\n  }\n}];"
+      },
+      "id": "b1c2d3e4-0006-0006-0006-b1c2d3e40006",
+      "name": "Parser réponse Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-002",
+              "leftValue": "={{ $json.hors_sujet }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1c2d3e4-0007-0007-0007-b1c2d3e40007",
+      "name": "Hors sujet / spam ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v19.0/{{ $vars.INSTAGRAM_PAGE_ID }}/messages",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"recipient\": {\n    \"id\": \"{{ $json.sender_id }}\"\n  },\n  \"message\": {\n    \"text\": \"{{ $json.reponse_dm }}\"\n  },\n  \"messaging_type\": \"RESPONSE\"\n}",
+        "options": {}
+      },
+      "id": "b1c2d3e4-0008-0008-0008-b1c2d3e40008",
+      "name": "Envoyer réponse DM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-meta-001",
+          "name": "Meta Graph API Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "cond-003",
+              "leftValue": "={{ $json.lead_chaud }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b1c2d3e4-0009-0009-0009-b1c2d3e40009",
+      "name": "Lead chaud ?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $vars.TELEGRAM_CHAT_ID }}",
+        "text": "=🔥 *LEAD CHAUD — Souqly Instagram*\n\n👤 Sender ID: `{{ $('Parser réponse Claude').first().json.sender_id }}`\n📊 Score: *{{ $('Parser réponse Claude').first().json.score_lead }}/10*\n🎯 Persona: {{ $('Parser réponse Claude').first().json.persona_detecte }}\n💬 Intention: {{ $('Parser réponse Claude').first().json.intention }}\n\n*Message reçu :*\n_{{ $('Parser réponse Claude').first().json.message_original }}_\n\n*Réponse envoyée :*\n_{{ $('Parser réponse Claude').first().json.reponse_dm }}_\n\n📝 Note: {{ $('Parser réponse Claude').first().json.note_interne }}\n\n➡️ Relancer manuellement dans 24h si pas de réponse.",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "b1c2d3e4-0010-0010-0010-b1c2d3e40010",
+      "name": "Notif Telegram — Lead chaud",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.1,
+      "position": [2000, 160],
+      "credentials": {
+        "telegramApi": {
+          "id": "cred-telegram-001",
+          "name": "Telegram Bot Souqly"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "={{ $vars.GOOGLE_SHEET_ID }}",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Leads DM",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ new Date($('Parser réponse Claude').first().json.timestamp).toLocaleDateString('fr-FR') }}",
+            "sender_id": "={{ $('Parser réponse Claude').first().json.sender_id }}",
+            "message": "={{ $('Parser réponse Claude').first().json.message_original }}",
+            "reponse": "={{ $('Parser réponse Claude').first().json.reponse_dm }}",
+            "score": "={{ $('Parser réponse Claude').first().json.score_lead }}",
+            "persona": "={{ $('Parser réponse Claude').first().json.persona_detecte }}",
+            "intention": "={{ $('Parser réponse Claude').first().json.intention }}",
+            "statut": "Répondu"
+          }
+        },
+        "options": {}
+      },
+      "id": "b1c2d3e4-0011-0011-0011-b1c2d3e40011",
+      "name": "Log Google Sheets — Lead",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [2000, 340],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "cred-gsheets-001",
+          "name": "Google Sheets OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b1c2d3e4-0012-0012-0012-b1c2d3e40012",
+      "name": "Ignorer (hors sujet)",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [1560, 420]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "b1c2d3e4-0013-0013-0013-b1c2d3e40013",
+      "name": "Fin",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2220, 260]
+    }
+  ],
+  "connections": {
+    "Webhook — DM Instagram entrant": {
+      "main": [
+        [
+          {
+            "node": "Extraire le DM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraire le DM": {
+      "main": [
+        [
+          {
+            "node": "Est un vrai DM ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Est un vrai DM ?": {
+      "main": [
+        [
+          {
+            "node": "Claude — Analyse et répond",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Répondre OK à Meta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Claude — Analyse et répond": {
+      "main": [
+        [
+          {
+            "node": "Parser réponse Claude",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser réponse Claude": {
+      "main": [
+        [
+          {
+            "node": "Hors sujet / spam ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hors sujet / spam ?": {
+      "main": [
+        [
+          {
+            "node": "Ignorer (hors sujet)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Envoyer réponse DM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Envoyer réponse DM": {
+      "main": [
+        [
+          {
+            "node": "Lead chaud ?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead chaud ?": {
+      "main": [
+        [
+          {
+            "node": "Notif Telegram — Lead chaud",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Google Sheets — Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notif Telegram — Lead chaud": {
+      "main": [
+        [
+          {
+            "node": "Log Google Sheets — Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Google Sheets — Lead": {
+      "main": [
+        [
+          {
+            "node": "Fin",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "versionId": "v1-dm-automation",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "souqly-n8n-instance"
+  },
+  "id": "souqly-wf-002",
+  "tags": [
+    {
+      "createdAt": "2026-04-29T00:00:00.000Z",
+      "updatedAt": "2026-04-29T00:00:00.000Z",
+      "id": "tag-001",
+      "name": "Souqly"
+    },
+    {
+      "createdAt": "2026-04-29T00:00:00.000Z",
+      "updatedAt": "2026-04-29T00:00:00.000Z",
+      "id": "tag-003",
+      "name": "DM Automation"
+    }
+  ]
+}

@@ -18,9 +18,10 @@ export function formatPrice(cents: number): string {
  *
  * Placeholders supportés :
  *   {{products}}    → liste des articles
- *   {{total}}       → total formaté
+ *   {{total}}       → total formaté (articles + livraison)
  *   {{client_name}} → nom du client (optionnel)
  *   {{notes}}       → remarque client (optionnelle)
+ *   {{livraison}}   → mode de livraison + adresse
  */
 export function generateOrderMessage(
   template: string,
@@ -28,6 +29,7 @@ export function generateOrderMessage(
   totalCents: number,
   clientName: string,
   notes: string,
+  deliveryLine?: string,
 ): string {
   const productLines = items
     .map((item) => {
@@ -44,6 +46,7 @@ export function generateOrderMessage(
     .replace('{{total}}', total)
     .replace('{{client_name}}', clientName || '')
     .replace('{{notes}}', notes || '')
+    .replace('{{livraison}}', deliveryLine || '')
 }
 
 /**
@@ -53,6 +56,7 @@ export const DEFAULT_MESSAGE_TEMPLATE = `Bonjour, je souhaite commander :
 
 {{products}}
 
+Livraison : {{livraison}}
 Total : {{total}}
 
 Nom : {{client_name}}

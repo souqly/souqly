@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { SettingsShopForm } from '@/components/dashboard/SettingsShopForm'
 import { SettingsContactsForm } from '@/components/dashboard/SettingsContactsForm'
 import { SettingsAccessCodeForm } from '@/components/dashboard/SettingsAccessCodeForm'
+import { SettingsDeliveryForm } from '@/components/dashboard/SettingsDeliveryForm'
+import { SettingsProfileForm } from '@/components/dashboard/SettingsProfileForm'
 
 // ---------------------------------------------------------------------------
 // Metadata
@@ -26,6 +28,14 @@ type MerchantSettings = {
   telegram_username: string | null
   message_template: string | null
   subscription_status: string
+  click_and_collect_enabled: boolean
+  self_delivery_enabled: boolean
+  self_delivery_city: string | null
+  self_delivery_price_cents: number | null
+  colissimo_enabled: boolean
+  colissimo_price_cents: number | null
+  activity_type: string | null
+  catalog_theme: string
 }
 
 // ---------------------------------------------------------------------------
@@ -44,7 +54,7 @@ export default async function ParametresPage() {
   const { data: settings } = await supabase
     .from('merchants')
     .select(
-      'id, name, description, logo_url, whatsapp_number, telegram_username, message_template, subscription_status',
+      'id, name, description, logo_url, whatsapp_number, telegram_username, message_template, subscription_status, click_and_collect_enabled, self_delivery_enabled, self_delivery_city, self_delivery_price_cents, colissimo_enabled, colissimo_price_cents, activity_type, catalog_theme',
     )
     .eq('user_id', user.id)
     .single<MerchantSettings>()
@@ -78,7 +88,25 @@ export default async function ParametresPage() {
         message_template={settings.message_template}
       />
 
-      {/* Section 3 : Code d'accès */}
+      {/* Section 3 : Livraison */}
+      <SettingsDeliveryForm
+        settings={{
+          click_and_collect_enabled: settings.click_and_collect_enabled,
+          self_delivery_enabled: settings.self_delivery_enabled,
+          self_delivery_city: settings.self_delivery_city,
+          self_delivery_price_cents: settings.self_delivery_price_cents,
+          colissimo_enabled: settings.colissimo_enabled,
+          colissimo_price_cents: settings.colissimo_price_cents,
+        }}
+      />
+
+      {/* Section 4 : Profil & Thème */}
+      <SettingsProfileForm
+        activity_type={settings.activity_type}
+        catalog_theme={settings.catalog_theme ?? 'indigo-pro'}
+      />
+
+      {/* Section 5 : Code d'accès */}
       <SettingsAccessCodeForm />
     </div>
   )

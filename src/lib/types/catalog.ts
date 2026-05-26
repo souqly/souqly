@@ -10,6 +10,7 @@ export type ProductImage = {
 export type Product = {
   id: string
   category_id: string | null
+  brand_id: string | null
   name: string
   description: string | null
   price_cents: number
@@ -28,6 +29,16 @@ export type Category = {
   product_count: number
 }
 
+export type Brand = {
+  id: string
+  name: string
+  slug: string
+  position: number
+  product_count: number
+}
+
+export type DeliveryMethod = 'click_and_collect' | 'self_delivery' | 'colissimo'
+
 export type CatalogMerchant = {
   id: string
   slug: string
@@ -37,11 +48,20 @@ export type CatalogMerchant = {
   whatsapp_number: string | null
   telegram_username: string | null
   message_template: string
+  click_and_collect_enabled: boolean
+  self_delivery_enabled: boolean
+  self_delivery_city: string | null
+  self_delivery_price_cents: number | null
+  colissimo_enabled: boolean
+  colissimo_price_cents: number | null
+  activity_type: string | null
+  catalog_theme: string
 }
 
 export type CatalogData = {
   merchant: CatalogMerchant
   categories: Category[]
+  brands: Brand[]
   products: Product[]
 }
 

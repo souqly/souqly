@@ -26,10 +26,16 @@ export type ProductRow = {
   is_available: boolean
   position: number
   category_id: string | null
+  brand_id: string | null
   product_images: ProductImageRow[]
 }
 
 export type CategoryOption = {
+  id: string
+  name: string
+}
+
+export type BrandOption = {
   id: string
   name: string
 }

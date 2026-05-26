@@ -221,6 +221,7 @@ const createProductSchema = z.object({
     .positive('Le prix doit être positif.'),
   reference: z.string().max(50, 'Maximum 50 caractères.').optional(),
   category_id: z.string().uuid().optional().nullable(),
+  brand_id: z.string().uuid().optional().nullable(),
   is_available: z.coerce.boolean().default(true),
   position: z.coerce.number().int().min(0).default(0),
 })
@@ -232,6 +233,7 @@ export async function createProduct(
   if ('error' in auth) return auth
 
   const categoryIdRaw = formData.get('category_id')
+  const brandIdRaw = formData.get('brand_id')
 
   const raw = {
     name: formData.get('name'),
@@ -239,6 +241,7 @@ export async function createProduct(
     price_cents: formData.get('price_cents'),
     reference: formData.get('reference') || undefined,
     category_id: categoryIdRaw && categoryIdRaw !== '' ? categoryIdRaw : null,
+    brand_id: brandIdRaw && brandIdRaw !== '' ? brandIdRaw : null,
     is_available: formData.get('is_available') ?? true,
     position: formData.get('position') ?? 0,
   }
@@ -248,12 +251,13 @@ export async function createProduct(
     return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
   }
 
-  const { name, description, price_cents, reference, category_id, is_available, position } =
+  const { name, description, price_cents, reference, category_id, brand_id, is_available, position } =
     parsed.data
+
+  const supabase = await createClient()
 
   // Si category_id fourni, vérifier qu'elle appartient au marchand
   if (category_id) {
-    const supabase = await createClient()
     const { data: cat } = await supabase
       .from('categories')
       .select('merchant_id')
@@ -265,7 +269,19 @@ export async function createProduct(
     }
   }
 
-  const supabase = await createClient()
+  // Si brand_id fourni, vérifier qu'elle appartient au marchand
+  if (brand_id) {
+    const { data: brand } = await supabase
+      .from('brands')
+      .select('merchant_id')
+      .eq('id', brand_id)
+      .single<{ merchant_id: string }>()
+
+    if (!brand || brand.merchant_id !== auth.merchant.id) {
+      return { error: 'Marque invalide.' }
+    }
+  }
+
   const { data, error } = await supabase
     .from('products')
     .insert({
@@ -275,6 +291,7 @@ export async function createProduct(
       price_cents,
       reference: reference ?? null,
       category_id: category_id ?? null,
+      brand_id: brand_id ?? null,
       is_available,
       position,
     })
@@ -297,6 +314,7 @@ const updateProductSchema = z.object({
     .positive('Le prix doit être positif.'),
   reference: z.string().max(50, 'Maximum 50 caractères.').optional(),
   category_id: z.string().uuid().optional().nullable(),
+  brand_id: z.string().uuid().optional().nullable(),
   is_available: z.coerce.boolean().default(true),
   position: z.coerce.number().int().min(0).default(0),
 })
@@ -308,6 +326,7 @@ export async function updateProduct(
   if ('error' in auth) return auth
 
   const categoryIdRaw = formData.get('category_id')
+  const brandIdRaw = formData.get('brand_id')
 
   const raw = {
     id: formData.get('id'),
@@ -316,6 +335,7 @@ export async function updateProduct(
     price_cents: formData.get('price_cents'),
     reference: formData.get('reference') || undefined,
     category_id: categoryIdRaw && categoryIdRaw !== '' ? categoryIdRaw : null,
+    brand_id: brandIdRaw && brandIdRaw !== '' ? brandIdRaw : null,
     is_available: formData.get('is_available') ?? true,
     position: formData.get('position') ?? 0,
   }
@@ -325,7 +345,7 @@ export async function updateProduct(
     return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
   }
 
-  const { id, name, description, price_cents, reference, category_id, is_available, position } =
+  const { id, name, description, price_cents, reference, category_id, brand_id, is_available, position } =
     parsed.data
 
   const supabase = await createClient()
@@ -354,6 +374,19 @@ export async function updateProduct(
     }
   }
 
+  // Si brand_id fourni, vérifier l'appartenance
+  if (brand_id) {
+    const { data: brand } = await supabase
+      .from('brands')
+      .select('merchant_id')
+      .eq('id', brand_id)
+      .single<{ merchant_id: string }>()
+
+    if (!brand || brand.merchant_id !== auth.merchant.id) {
+      return { error: 'Marque invalide.' }
+    }
+  }
+
   const { error } = await supabase
     .from('products')
     .update({
@@ -362,6 +395,7 @@ export async function updateProduct(
       price_cents,
       reference: reference ?? null,
       category_id: category_id ?? null,
+      brand_id: brand_id ?? null,
       is_available,
       position,
       updated_at: new Date().toISOString(),
@@ -711,6 +745,47 @@ export async function updateMerchantSettings(
 }
 
 // ---------------------------------------------------------------------------
+// PROFIL MARCHAND (activité + thème)
+// ---------------------------------------------------------------------------
+
+const updateMerchantProfileSchema = z.object({
+  activity_type: z.string().max(50).optional().or(z.literal('')),
+  catalog_theme: z.string().min(1).max(50).default('indigo-pro'),
+})
+
+export async function updateMerchantProfile(
+  formData: FormData,
+): Promise<ActionResult> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const raw = {
+    activity_type: formData.get('activity_type') || undefined,
+    catalog_theme: formData.get('catalog_theme') || 'indigo-pro',
+  }
+
+  const parsed = updateMerchantProfileSchema.safeParse(raw)
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('merchants')
+    .update({
+      activity_type: parsed.data.activity_type || null,
+      catalog_theme: parsed.data.catalog_theme,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', auth.merchant.id)
+
+  if (error) return { error: 'Erreur lors de la mise à jour du profil.' }
+
+  revalidatePath('/dashboard/parametres')
+  return { success: true }
+}
+
+// ---------------------------------------------------------------------------
 // LOGO MARCHAND
 // ---------------------------------------------------------------------------
 
@@ -843,6 +918,182 @@ export async function updateAccessCode(
   await supabase.rpc('invalidate_all_sessions', {
     p_merchant_id: auth.merchant.id,
   })
+
+  revalidatePath('/dashboard/parametres')
+  return { success: true }
+}
+
+// ---------------------------------------------------------------------------
+// BRANDS
+// ---------------------------------------------------------------------------
+
+const createBrandSchema = z.object({
+  name: z.string().min(1, 'Le nom est requis.').max(50, 'Maximum 50 caractères.'),
+  position: z.coerce.number().int().min(0).default(0),
+})
+
+export async function createBrand(formData: FormData): Promise<ActionResultWithId> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = createBrandSchema.safeParse({
+    name: formData.get('name'),
+    position: formData.get('position') ?? 0,
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const { name, position } = parsed.data
+  const slug = slugify(name)
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('brands')
+    .insert({ merchant_id: auth.merchant.id, name, slug, position })
+    .select('id')
+    .single<{ id: string }>()
+
+  if (error) {
+    if (error.code === '23505') return { error: 'Une marque avec ce nom existe déjà.' }
+    return { error: 'Erreur lors de la création de la marque.' }
+  }
+
+  revalidatePath('/dashboard/marques')
+  return { success: true, id: data.id }
+}
+
+const updateBrandSchema = z.object({
+  id: z.string().uuid('Identifiant invalide.'),
+  name: z.string().min(1, 'Le nom est requis.').max(50, 'Maximum 50 caractères.'),
+  position: z.coerce.number().int().min(0).default(0),
+})
+
+export async function updateBrand(formData: FormData): Promise<ActionResult> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = updateBrandSchema.safeParse({
+    id: formData.get('id'),
+    name: formData.get('name'),
+    position: formData.get('position') ?? 0,
+  })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const { id, name, position } = parsed.data
+  const slug = slugify(name)
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('brands')
+    .select('merchant_id')
+    .eq('id', id)
+    .single<{ merchant_id: string }>()
+
+  if (!existing || existing.merchant_id !== auth.merchant.id) {
+    return { error: 'Marque introuvable.' }
+  }
+
+  const { error } = await supabase
+    .from('brands')
+    .update({ name, slug, position })
+    .eq('id', id)
+
+  if (error) return { error: 'Erreur lors de la mise à jour.' }
+
+  revalidatePath('/dashboard/marques')
+  return { success: true }
+}
+
+const deleteBrandSchema = z.object({
+  id: z.string().uuid('Identifiant invalide.'),
+})
+
+export async function deleteBrand(formData: FormData): Promise<ActionResult> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = deleteBrandSchema.safeParse({ id: formData.get('id') })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const { id } = parsed.data
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('brands')
+    .select('merchant_id')
+    .eq('id', id)
+    .single<{ merchant_id: string }>()
+
+  if (!existing || existing.merchant_id !== auth.merchant.id) {
+    return { error: 'Marque introuvable.' }
+  }
+
+  // Dissocier les produits de cette marque
+  await supabase
+    .from('products')
+    .update({ brand_id: null })
+    .eq('brand_id', id)
+    .eq('merchant_id', auth.merchant.id)
+
+  const { error } = await supabase.from('brands').delete().eq('id', id)
+  if (error) return { error: 'Erreur lors de la suppression.' }
+
+  revalidatePath('/dashboard/marques')
+  revalidatePath('/dashboard/produits')
+  return { success: true }
+}
+
+// ---------------------------------------------------------------------------
+// LIVRAISON
+// ---------------------------------------------------------------------------
+
+const updateDeliverySettingsSchema = z.object({
+  click_and_collect_enabled: z.coerce.boolean().default(false),
+  self_delivery_enabled: z.coerce.boolean().default(false),
+  self_delivery_city: z.string().max(100, 'Maximum 100 caractères.').optional(),
+  self_delivery_price_cents: z.coerce.number().int().min(0).optional().nullable(),
+  colissimo_enabled: z.coerce.boolean().default(false),
+  colissimo_price_cents: z.coerce.number().int().min(0).optional().nullable(),
+})
+
+export async function updateDeliverySettings(formData: FormData): Promise<ActionResult> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const selfPriceRaw = formData.get('self_delivery_price_cents')
+  const colissimoPriceRaw = formData.get('colissimo_price_cents')
+
+  const parsed = updateDeliverySettingsSchema.safeParse({
+    click_and_collect_enabled: formData.get('click_and_collect_enabled') === 'on',
+    self_delivery_enabled: formData.get('self_delivery_enabled') === 'on',
+    self_delivery_city: formData.get('self_delivery_city') || undefined,
+    self_delivery_price_cents:
+      selfPriceRaw !== null && selfPriceRaw !== '' ? selfPriceRaw : null,
+    colissimo_enabled: formData.get('colissimo_enabled') === 'on',
+    colissimo_price_cents:
+      colissimoPriceRaw !== null && colissimoPriceRaw !== '' ? colissimoPriceRaw : null,
+  })
+
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('merchants')
+    .update({
+      ...parsed.data,
+      self_delivery_city: parsed.data.self_delivery_city ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', auth.merchant.id)
+
+  if (error) return { error: 'Erreur lors de la mise à jour des options de livraison.' }
 
   revalidatePath('/dashboard/parametres')
   return { success: true }

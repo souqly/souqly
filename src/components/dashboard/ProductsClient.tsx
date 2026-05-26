@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ProductsTable } from './ProductsTable'
 import { ProductFormModal } from './ProductFormModal'
-import type { ProductRow, CategoryOption } from './ProductsTable'
+import type { ProductRow, CategoryOption, BrandOption } from './ProductsTable'
 
 // ---------------------------------------------------------------------------
 // Props
@@ -13,6 +13,7 @@ import type { ProductRow, CategoryOption } from './ProductsTable'
 interface ProductsClientProps {
   products: ProductRow[]
   categories: CategoryOption[]
+  brands: BrandOption[]
   merchantId: string
 }
 
@@ -23,6 +24,7 @@ interface ProductsClientProps {
 export function ProductsClient({
   products,
   categories,
+  brands,
   merchantId,
 }: ProductsClientProps) {
   const [modalOpen, setModalOpen] = useState(false)
@@ -76,6 +78,7 @@ export function ProductsClient({
         open={modalOpen}
         onClose={handleClose}
         categories={categories}
+        brands={brands}
         merchantId={merchantId}
         editProduct={editProduct}
       />

@@ -10,11 +10,13 @@ import type {
   CatalogResult,
   CatalogMerchant,
   Category,
+  Brand,
   Product,
 } from '@/lib/types/catalog'
 import { formatPrice } from '@/lib/utils/format'
 import { CartBadge } from '../_components/CartBadge'
 import { QuickAddButton } from '../_components/QuickAddButton'
+import { FilterBar } from '../_components/FilterBar'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -45,7 +47,14 @@ function initials(name: string): string {
 
 interface PageProps {
   params: Promise<{ slug: string }>
-  searchParams: Promise<{ cat?: string }>
+  searchParams: Promise<{
+    cat?: string
+    brand?: string
+    q?: string
+    sort?: string
+    min?: string
+    max?: string
+  }>
 }
 
 // ---------------------------------------------------------------------------
@@ -78,7 +87,7 @@ export async function generateMetadata({
 
 export default async function CataloguePage({ params, searchParams }: PageProps) {
   const { slug } = await params
-  const { cat: categoryFilter } = await searchParams
+  const { cat: categoryFilter, brand: brandFilter, q, sort, min, max } = await searchParams
 
   const cookieStore = await cookies()
   const sessionToken = cookieStore.get(`catalog_session_${slug}`)?.value
@@ -97,17 +106,46 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
     redirect(`/${slug}`)
   }
 
-  const { merchant, categories, products } = data as CatalogData
+  const { merchant, categories, brands, products } = data as CatalogData
 
-  // Filtre catégorie
-  const filteredProducts = categoryFilter
-    ? products.filter((p) => {
-        const cat = categories.find((c) => c.slug === categoryFilter)
-        return cat ? p.category_id === cat.id : true
-      })
-    : products
+  // Résoudre les IDs depuis les slugs
+  const activeCatId = categoryFilter
+    ? categories.find((c) => c.slug === categoryFilter)?.id
+    : undefined
+  const activeBrandId = brandFilter
+    ? brands.find((b) => b.slug === brandFilter)?.id
+    : undefined
 
-  const availableProducts = filteredProducts.filter((p) => p.is_available)
+  // Filtrage multi-critères (côté serveur sur les données RPC)
+  let filtered = products.filter((p) => p.is_available)
+
+  if (activeCatId) filtered = filtered.filter((p) => p.category_id === activeCatId)
+  if (activeBrandId) filtered = filtered.filter((p) => p.brand_id === activeBrandId)
+
+  if (q) {
+    const qLower = q.toLowerCase()
+    filtered = filtered.filter(
+      (p) =>
+        p.name.toLowerCase().includes(qLower) ||
+        (p.reference?.toLowerCase().includes(qLower) ?? false),
+    )
+  }
+
+  if (min) {
+    const minCents = Math.round(parseFloat(min) * 100)
+    if (!isNaN(minCents)) filtered = filtered.filter((p) => p.price_cents >= minCents)
+  }
+  if (max) {
+    const maxCents = Math.round(parseFloat(max) * 100)
+    if (!isNaN(maxCents)) filtered = filtered.filter((p) => p.price_cents <= maxCents)
+  }
+
+  // Tri
+  if (sort === 'price_asc') filtered = [...filtered].sort((a, b) => a.price_cents - b.price_cents)
+  else if (sort === 'price_desc') filtered = [...filtered].sort((a, b) => b.price_cents - a.price_cents)
+  else if (sort === 'name_asc') filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name, 'fr'))
+
+  const availableProducts = filtered
   const totalAvailable = products.filter((p) => p.is_available).length
 
   // Visite (fire and forget)
@@ -183,20 +221,25 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
           Contenu principal
           ================================================================ */}
       <div className="max-w-6xl mx-auto px-4 py-8 space-y-10">
-        {/* Filtres catégories */}
-        {categories.length > 0 && (
-          <Suspense fallback={<CategoryFilterSkeleton count={categories.length} />}>
-            <CategoryFilters
-              categories={categories}
-              activeSlug={categoryFilter}
-              merchantSlug={slug}
-              totalAvailable={totalAvailable}
-            />
-          </Suspense>
-        )}
+
+        {/* Barre de filtres */}
+        <Suspense fallback={<FilterBarSkeleton />}>
+          <FilterBar
+            categories={categories}
+            brands={brands}
+            merchantSlug={slug}
+            totalAvailable={totalAvailable}
+            activeCategory={categoryFilter}
+            activeBrand={brandFilter}
+            activeSort={sort}
+            activeQ={q}
+            activeMin={min}
+            activeMax={max}
+          />
+        </Suspense>
 
         {/* Grille catégories (uniquement si aucun filtre actif) */}
-        {!categoryFilter && categories.length > 0 && (
+        {!categoryFilter && !brandFilter && !q && !min && !max && !sort && categories.length > 0 && (
           <section aria-label="Catégories">
             <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-4">
               Catégories
@@ -213,6 +256,10 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
             <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest">
               {categoryFilter
                 ? (categories.find((c) => c.slug === categoryFilter)?.name ?? 'Produits')
+                : brandFilter
+                ? (brands.find((b) => b.slug === brandFilter)?.name ?? 'Produits')
+                : q
+                ? `Résultats pour "${q}"`
                 : 'Tous les produits'}
             </h2>
             <span className="text-xs text-neutral-600 tabular-nums">
@@ -221,7 +268,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
           </div>
 
           {availableProducts.length === 0 ? (
-            <EmptyState merchantSlug={slug} hasCategoryFilter={!!categoryFilter} />
+            <EmptyState merchantSlug={slug} hasActiveFilter={!!(categoryFilter || brandFilter || q || min || max)} />
           ) : (
             <Suspense
               fallback={<GridSkeleton count={Math.min(availableProducts.length, 8)} aspect="portrait" />}
@@ -279,60 +326,6 @@ function MerchantAvatar({
     >
       <span className={`text-white ${textClass}`}>{initials(merchant.name)}</span>
     </div>
-  )
-}
-
-// ---------------------------------------------------------------------------
-// CategoryFilters — Server Component
-// ---------------------------------------------------------------------------
-
-function CategoryFilters({
-  categories,
-  activeSlug,
-  merchantSlug,
-  totalAvailable,
-}: {
-  categories: Category[]
-  activeSlug?: string
-  merchantSlug: string
-  totalAvailable: number
-}) {
-  return (
-    <nav
-      aria-label="Filtrer par catégorie"
-      className="overflow-x-auto scrollbar-hide -mx-4 px-4"
-    >
-      <div className="flex gap-2 flex-nowrap w-max">
-        <a
-          href={`/${merchantSlug}/catalogue`}
-          aria-current={!activeSlug ? 'page' : undefined}
-          className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-            !activeSlug
-              ? 'bg-white text-neutral-950 font-semibold shadow-sm'
-              : 'bg-neutral-800/60 border border-white/5 text-neutral-400 hover:text-white hover:border-indigo-500/30'
-          }`}
-        >
-          Tous
-          <span className="tabular-nums text-neutral-600">{totalAvailable}</span>
-        </a>
-
-        {categories.map((cat) => (
-          <a
-            key={cat.id}
-            href={`/${merchantSlug}/catalogue?cat=${cat.slug}`}
-            aria-current={activeSlug === cat.slug ? 'page' : undefined}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-              activeSlug === cat.slug
-                ? 'bg-white text-neutral-950 font-semibold shadow-sm'
-                : 'bg-neutral-800/60 border border-white/5 text-neutral-400 hover:text-white hover:border-indigo-500/30'
-            }`}
-          >
-            {cat.name}
-            <span className="tabular-nums text-neutral-600">{cat.product_count}</span>
-          </a>
-        ))}
-      </div>
-    </nav>
   )
 }
 
@@ -504,25 +497,27 @@ function ProductCard({
 
 function EmptyState({
   merchantSlug,
-  hasCategoryFilter,
+  hasActiveFilter,
 }: {
   merchantSlug: string
-  hasCategoryFilter: boolean
+  hasActiveFilter: boolean
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
       <Package className="w-12 h-12 text-neutral-700" aria-hidden="true" />
       <div className="space-y-1">
         <p className="text-sm text-neutral-400 font-medium">
-          {hasCategoryFilter
-            ? 'Aucun produit disponible dans cette catégorie.'
+          {hasActiveFilter
+            ? 'Aucun produit ne correspond à ces filtres.'
             : 'Aucun produit disponible pour le moment.'}
         </p>
         <p className="text-xs text-neutral-600">
-          Revenez prochainement ou explorez d&apos;autres catégories.
+          {hasActiveFilter
+            ? 'Essayez d\'élargir ou de réinitialiser les filtres.'
+            : 'Revenez prochainement.'}
         </p>
       </div>
-      {hasCategoryFilter && (
+      {hasActiveFilter && (
         <a
           href={`/${merchantSlug}/catalogue`}
           className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors"
@@ -560,16 +555,19 @@ function GridSkeleton({ count, aspect }: { count: number; aspect: 'square' | 'po
   )
 }
 
-function CategoryFilterSkeleton({ count }: { count: number }) {
+function FilterBarSkeleton() {
   return (
-    <div className="flex gap-2 overflow-hidden">
-      {Array.from({ length: count + 1 }).map((_, i) => (
-        <div
-          key={i}
-          className="h-7 w-20 shrink-0 rounded-full bg-neutral-800 animate-pulse"
-          aria-hidden="true"
-        />
-      ))}
+    <div className="space-y-3">
+      <div className="flex gap-2">
+        <div className="flex-1 h-9 rounded-xl bg-neutral-900 animate-pulse" />
+        <div className="h-9 w-24 rounded-xl bg-neutral-900 animate-pulse" />
+        <div className="h-9 w-32 rounded-xl bg-neutral-900 animate-pulse" />
+      </div>
+      <div className="flex gap-2 overflow-hidden">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-7 w-20 shrink-0 rounded-full bg-neutral-800 animate-pulse" aria-hidden="true" />
+        ))}
+      </div>
     </div>
   )
 }

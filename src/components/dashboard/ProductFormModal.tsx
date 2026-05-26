@@ -3,7 +3,7 @@
 import { useRef, useState, useTransition } from 'react'
 import { X, Loader2 } from 'lucide-react'
 import { createProduct, updateProduct } from '@/lib/actions/dashboard'
-import type { ProductRow, CategoryOption } from './ProductsTable'
+import type { ProductRow, CategoryOption, BrandOption } from './ProductsTable'
 import { ProductImageManager } from './ProductImageManager'
 
 // ---------------------------------------------------------------------------
@@ -14,6 +14,7 @@ interface ProductFormModalProps {
   open: boolean
   onClose: () => void
   categories: CategoryOption[]
+  brands: BrandOption[]
   merchantId: string
   editProduct?: ProductRow | null
 }
@@ -26,6 +27,7 @@ export function ProductFormModal({
   open,
   onClose,
   categories,
+  brands,
   merchantId,
   editProduct,
 }: ProductFormModalProps) {
@@ -170,24 +172,40 @@ export function ProductFormModal({
               </div>
             </div>
 
-            {/* Catégorie */}
-            <div>
-              <label htmlFor="product-category" className="block text-xs font-medium text-neutral-400 mb-1.5">
-                Catégorie
-              </label>
-              <select
-                id="product-category"
-                name="category_id"
-                defaultValue={editProduct?.category_id ?? ''}
-                className="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/40 transition-colors"
-              >
-                <option value="">Sans catégorie</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
+            {/* Catégorie + Marque */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="product-category" className="block text-xs font-medium text-neutral-400 mb-1.5">
+                  Catégorie
+                </label>
+                <select
+                  id="product-category"
+                  name="category_id"
+                  defaultValue={editProduct?.category_id ?? ''}
+                  className="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/40 transition-colors"
+                >
+                  <option value="">Sans catégorie</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="product-brand" className="block text-xs font-medium text-neutral-400 mb-1.5">
+                  Marque
+                </label>
+                <select
+                  id="product-brand"
+                  name="brand_id"
+                  defaultValue={editProduct?.brand_id ?? ''}
+                  className="w-full bg-neutral-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/40 transition-colors"
+                >
+                  <option value="">Sans marque</option>
+                  {brands.map((b) => (
+                    <option key={b.id} value={b.id}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Position + Disponibilité */}
