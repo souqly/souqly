@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import Image from 'next/image'
-import { Pencil, Trash2, ToggleLeft, ToggleRight, Loader2 } from 'lucide-react'
+import { Pencil, Trash2, ToggleLeft, ToggleRight, Loader2, Share2 } from 'lucide-react'
 import { toggleProductAvailability, deleteProduct } from '@/lib/actions/dashboard'
 import { formatPrice } from '@/lib/utils/format'
 
@@ -45,6 +45,7 @@ interface ProductsTableProps {
   categories: CategoryOption[]
   merchantId: string
   onEdit: (product: ProductRow) => void
+  onShare: (product: ProductRow) => void
 }
 
 // ---------------------------------------------------------------------------
@@ -55,10 +56,12 @@ function ProductRow({
   product,
   categoryName,
   onEdit,
+  onShare,
 }: {
   product: ProductRow
   categoryName: string | null
   onEdit: (p: ProductRow) => void
+  onShare: (p: ProductRow) => void
 }) {
   const [isPending, startTransition] = useTransition()
   const [isAvailable, setIsAvailable] = useState(product.is_available)
@@ -164,6 +167,14 @@ function ProductRow({
           </button>
           <button
             type="button"
+            onClick={() => onShare(product)}
+            className="p-1.5 rounded-md text-neutral-400 hover:text-yellow-400 hover:bg-yellow-400/5 transition-colors"
+            aria-label="Partager en Story"
+          >
+            <Share2 className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
             onClick={handleDelete}
             disabled={isDeleting}
             className="p-1.5 rounded-md text-neutral-400 hover:text-red-400 hover:bg-red-500/5 transition-colors disabled:opacity-50"
@@ -189,6 +200,7 @@ export function ProductsTable({
   products,
   categories,
   onEdit,
+  onShare,
 }: ProductsTableProps) {
   const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c.name]))
 
@@ -233,6 +245,7 @@ export function ProductsTable({
                 product={product}
                 categoryName={product.category_id ? (categoryMap[product.category_id] ?? null) : null}
                 onEdit={onEdit}
+                onShare={onShare}
               />
             ))}
           </tbody>

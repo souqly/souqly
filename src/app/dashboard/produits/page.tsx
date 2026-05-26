@@ -47,6 +47,9 @@ type BrandOption = {
 
 type MerchantRow = {
   id: string
+  slug: string
+  name: string
+  logo_url: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -64,7 +67,7 @@ export default async function ProduitsPage() {
 
   const { data: merchant } = await supabase
     .from('merchants')
-    .select('id')
+    .select('id, slug, name, logo_url')
     .eq('user_id', user.id)
     .single<MerchantRow>()
 
@@ -97,6 +100,9 @@ export default async function ProduitsPage() {
         categories={(categories as CategoryOption[]) ?? []}
         brands={(brands as BrandOption[]) ?? []}
         merchantId={merchant.id}
+        merchantSlug={merchant.slug}
+        merchantName={merchant.name}
+        merchantLogoUrl={merchant.logo_url}
       />
     </div>
   )

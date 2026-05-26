@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { X, Loader2 } from 'lucide-react'
+import { X, Loader2, Share2 } from 'lucide-react'
 import { createProduct, updateProduct } from '@/lib/actions/dashboard'
 import type { ProductRow, CategoryOption, BrandOption } from './ProductsTable'
 import { ProductImageManager } from './ProductImageManager'
@@ -17,6 +17,7 @@ interface ProductFormModalProps {
   brands: BrandOption[]
   merchantId: string
   editProduct?: ProductRow | null
+  onShare?: () => void
 }
 
 // ---------------------------------------------------------------------------
@@ -30,6 +31,7 @@ export function ProductFormModal({
   brands,
   merchantId,
   editProduct,
+  onShare,
 }: ProductFormModalProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
@@ -260,6 +262,16 @@ export function ProductFormModal({
               >
                 Annuler
               </button>
+              {isEditing && onShare && (
+                <button
+                  type="button"
+                  onClick={onShare}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 text-yellow-400 text-sm font-medium rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400/40"
+                >
+                  <Share2 className="h-4 w-4" />
+                  Partager
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={isPending}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { ProductsTable } from './ProductsTable'
 import { ProductFormModal } from './ProductFormModal'
+import { ProductShareModal } from './ProductShareModal'
 import type { ProductRow, CategoryOption, BrandOption } from './ProductsTable'
 
 // ---------------------------------------------------------------------------
@@ -15,6 +16,9 @@ interface ProductsClientProps {
   categories: CategoryOption[]
   brands: BrandOption[]
   merchantId: string
+  merchantSlug: string
+  merchantName: string
+  merchantLogoUrl: string | null
 }
 
 // ---------------------------------------------------------------------------
@@ -26,9 +30,13 @@ export function ProductsClient({
   categories,
   brands,
   merchantId,
+  merchantSlug,
+  merchantName,
+  merchantLogoUrl,
 }: ProductsClientProps) {
   const [modalOpen, setModalOpen] = useState(false)
   const [editProduct, setEditProduct] = useState<ProductRow | null>(null)
+  const [shareProduct, setShareProduct] = useState<ProductRow | null>(null)
 
   function handleEdit(product: ProductRow) {
     setEditProduct(product)
@@ -43,6 +51,21 @@ export function ProductsClient({
   function handleClose() {
     setModalOpen(false)
     setEditProduct(null)
+  }
+
+  function handleShare(product: ProductRow) {
+    setShareProduct(product)
+  }
+
+  function handleShareFromModal() {
+    const product = editProduct
+    setModalOpen(false)
+    setEditProduct(null)
+    if (product) setShareProduct(product)
+  }
+
+  function handleCloseShare() {
+    setShareProduct(null)
   }
 
   return (
@@ -71,9 +94,10 @@ export function ProductsClient({
         categories={categories}
         merchantId={merchantId}
         onEdit={handleEdit}
+        onShare={handleShare}
       />
 
-      {/* Modal */}
+      {/* Modal création / édition */}
       <ProductFormModal
         open={modalOpen}
         onClose={handleClose}
@@ -81,7 +105,20 @@ export function ProductsClient({
         brands={brands}
         merchantId={merchantId}
         editProduct={editProduct}
+        onShare={editProduct ? handleShareFromModal : undefined}
       />
+
+      {/* Modal partage Story */}
+      {shareProduct && (
+        <ProductShareModal
+          open={Boolean(shareProduct)}
+          onClose={handleCloseShare}
+          product={shareProduct}
+          merchantName={merchantName}
+          merchantSlug={merchantSlug}
+          merchantLogoUrl={merchantLogoUrl}
+        />
+      )}
     </>
   )
 }
