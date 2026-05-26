@@ -3,7 +3,7 @@
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { sendApplicationReceivedEmail } from '@/lib/emails/send'
+import { sendApplicationReceivedEmail } from '@/lib/utils/email'
 import { getSiteUrl } from '@/lib/env'
 
 // ---------------------------------------------------------------------------
@@ -88,7 +88,7 @@ export async function signUp(formData: FormData): Promise<ActionResult> {
   })
 
   // Confirmation de réception — fire-and-forget, ne bloque pas l'inscription
-  sendApplicationReceivedEmail(email, name).catch(() => {})
+  sendApplicationReceivedEmail({ to: email, applicantName: name }).catch(() => {})
 
   return {
     success: true,

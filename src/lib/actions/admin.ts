@@ -156,6 +156,16 @@ export async function rejectApplication(
 
   const admin = createAdminClient()
 
+  const { data: application, error: fetchError } = await admin
+    .from('merchant_applications')
+    .select('applicant_email, applicant_name')
+    .eq('id', application_id)
+    .single<{ applicant_email: string; applicant_name: string }>()
+
+  if (fetchError) {
+    return { error: fetchError.message }
+  }
+
   const { error } = await admin
     .from('merchant_applications')
     .update({
@@ -168,6 +178,12 @@ export async function rejectApplication(
   if (error) {
     return { error: error.message }
   }
+
+  sendMerchantRejectedEmail({
+    to: application.applicant_email,
+    merchantName: application.applicant_name,
+    reason,
+  }).catch(() => {})
 
   revalidatePath('/admin/candidatures')
 

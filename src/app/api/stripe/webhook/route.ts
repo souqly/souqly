@@ -31,7 +31,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import {
   sendSubscriptionPastDueEmail,
   sendSubscriptionCanceledEmail,
-} from '@/lib/emails/send'
+} from '@/lib/utils/email'
 
 // Désactiver le bodyParser de Next.js pour lire le body brut
 export const dynamic = 'force-dynamic'
@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
             canceledMerchant.user_id,
           )
           if (canceledUser?.email) {
-            sendSubscriptionCanceledEmail(canceledUser.email, canceledMerchant.name).catch(() => {})
+            sendSubscriptionCanceledEmail({ to: canceledUser.email, merchantName: canceledMerchant.name }).catch(() => {})
           }
         }
 
@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
           )
           if (pastDueUser?.email) {
             const portalUrl = `${getSiteUrl()}/dashboard/abonnement`
-            sendSubscriptionPastDueEmail(pastDueUser.email, pastDueMerchant.name, portalUrl).catch(() => {})
+            sendSubscriptionPastDueEmail({ to: pastDueUser.email, merchantName: pastDueMerchant.name, portalUrl }).catch(() => {})
           }
         }
 

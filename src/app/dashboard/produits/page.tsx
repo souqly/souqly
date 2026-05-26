@@ -31,6 +31,7 @@ type ProductRow = {
   is_available: boolean
   position: number
   category_id: string | null
+  brand_id: string | null
   product_images: ProductImageRow[]
 }
 

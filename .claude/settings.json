@@ -24,7 +24,9 @@
       "Bash(npx tsc:*)",
       "Bash(xargs grep:*)",
       "Bash(npm run:*)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git push *)",
+      "Bash(git fetch *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\digit\\Documents\\Souqly\\src\\app\\dashboard",

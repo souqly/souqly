@@ -206,6 +206,131 @@ export async function sendMerchantRejectedEmail(opts: {
 }
 
 // ---------------------------------------------------------------------------
+// sendApplicationReceivedEmail
+// Appelé depuis : src/lib/actions/auth.ts → signUp
+// ---------------------------------------------------------------------------
+
+export async function sendApplicationReceivedEmail(opts: {
+  to: string
+  applicantName: string
+}): Promise<void> {
+  const { to, applicantName } = opts
+
+  const html = buildHtml({
+    title: 'Votre demande a bien été reçue — Souqly',
+    preheader: `Nous avons bien reçu votre demande d'accès, ${applicantName}.`,
+    bodyContent: `
+      <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#111827;">
+        Bonjour ${applicantName},
+      </p>
+      <p style="margin:0 0 12px;">
+        Nous avons bien reçu votre demande d'accès à Souqly.
+      </p>
+      <p style="margin:0;">
+        Notre équipe va examiner votre dossier sous 24–48h.
+        Vous recevrez un email dès la validation de votre compte.
+      </p>
+    `,
+  })
+
+  const { error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Votre demande a bien été reçue — Souqly',
+    html,
+  })
+
+  if (error) {
+    console.warn('[sendApplicationReceivedEmail] Erreur Resend:', error.message)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// sendSubscriptionPastDueEmail
+// Appelé depuis : src/app/api/stripe/webhook/route.ts → invoice.payment_failed
+// ---------------------------------------------------------------------------
+
+export async function sendSubscriptionPastDueEmail(opts: {
+  to: string
+  merchantName: string
+  portalUrl: string
+}): Promise<void> {
+  const { to, merchantName, portalUrl } = opts
+
+  const html = buildHtml({
+    title: 'Action requise — Votre paiement Souqly a échoué',
+    preheader: `Votre paiement mensuel n'a pas pu être traité, ${merchantName}.`,
+    bodyContent: `
+      <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#111827;">
+        Bonjour ${merchantName},
+      </p>
+      <p style="margin:0 0 12px;">
+        Votre paiement mensuel Souqly n'a pas pu être traité.
+        Votre catalogue est temporairement suspendu.
+      </p>
+      <p style="margin:0;font-size:13px;color:#6b7280;">
+        Sans mise à jour de vos informations de paiement, votre compte sera annulé.
+      </p>
+    `,
+    ctaHref: portalUrl,
+    ctaLabel: 'Mettre à jour mon moyen de paiement',
+  })
+
+  const { error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Action requise — Votre paiement Souqly a échoué',
+    html,
+  })
+
+  if (error) {
+    console.warn('[sendSubscriptionPastDueEmail] Erreur Resend:', error.message)
+  }
+}
+
+// ---------------------------------------------------------------------------
+// sendSubscriptionCanceledEmail
+// Appelé depuis : src/app/api/stripe/webhook/route.ts → customer.subscription.deleted
+// ---------------------------------------------------------------------------
+
+export async function sendSubscriptionCanceledEmail(opts: {
+  to: string
+  merchantName: string
+}): Promise<void> {
+  const { to, merchantName } = opts
+
+  const html = buildHtml({
+    title: 'Votre abonnement Souqly a été annulé',
+    preheader: `Votre abonnement a été annulé, ${merchantName}.`,
+    bodyContent: `
+      <p style="margin:0 0 16px;font-size:18px;font-weight:700;color:#111827;">
+        Bonjour ${merchantName},
+      </p>
+      <p style="margin:0 0 12px;">
+        Votre abonnement Souqly a été annulé.
+        Votre catalogue n'est plus accessible aux visiteurs.
+      </p>
+      <p style="margin:0;">
+        Pour réactiver votre compte, contactez-nous à
+        <a href="mailto:contact@souqly.fr"
+           style="color:#4f46e5;text-decoration:none;">contact@souqly.fr</a>.
+      </p>
+    `,
+  })
+
+  const { error } = await getResend().emails.send({
+    from: FROM_EMAIL,
+    to,
+    subject: 'Votre abonnement Souqly a été annulé',
+    html,
+  })
+
+  if (error) {
+    console.warn('[sendSubscriptionCanceledEmail] Erreur Resend:', error.message)
+  }
+}
+
+// ---------------------------------------------------------------------------
 // sendTrialExpiringEmail
 // Appelé depuis : job/webhook Stripe ou cron → à implémenter
 // ---------------------------------------------------------------------------
