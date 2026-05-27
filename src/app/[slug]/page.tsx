@@ -31,10 +31,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const supabase = await createClient()
 
   const { data } = await supabase
-    .from('merchants')
+    .from('merchants_public')
     .select('name, description')
     .eq('slug', slug)
-    .eq('status', 'active')
     .single<Pick<MerchantRow, 'name' | 'description'>>()
 
   if (!data) {
@@ -80,9 +79,9 @@ export default async function MerchantHomePage({ params }: PageProps) {
     // Session invalide ou expirée — on continue vers le formulaire
   }
 
-  // 2. Récupérer les données du marchand (colonnes explicites uniquement)
+  // 2. Récupérer les données du marchand via la vue publique (sans colonnes sensibles)
   const { data: merchant } = await supabase
-    .from('merchants')
+    .from('merchants_public')
     .select('name, description, logo_url, status, subscription_status')
     .eq('slug', slug)
     .single<MerchantRow>()

@@ -69,7 +69,7 @@ export async function generateMetadata({
   const { slug } = await params
   const supabase = await createClient()
   const { data } = await supabase
-    .from('merchants')
+    .from('merchants_public')
     .select('name, description')
     .eq('slug', slug)
     .single<{ name: string; description: string | null }>()
