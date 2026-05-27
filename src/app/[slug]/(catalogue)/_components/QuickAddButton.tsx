@@ -15,17 +15,22 @@ export function QuickAddButton({ product, merchantSlug, imageUrl }: QuickAddButt
   const { addToCart } = useCart(merchantSlug)
   const [added, setAdded] = useState(false)
 
+  // Ne pas afficher pour les produits avec variantes : la sélection est obligatoire
+  if (product.variants.length > 0) return null
+
   function handleClick(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
 
     addToCart({
       productId: product.id,
+      cartKey: product.id,
       name: product.name,
       reference: product.reference,
       price_cents: product.price_cents,
       quantity: 1,
       image_url: imageUrl,
+      selectedVariants: [],
     })
 
     setAdded(true)
