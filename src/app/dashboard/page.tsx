@@ -10,6 +10,7 @@ import {
 import { createClient } from '@/lib/supabase/server'
 import { formatPrice } from '@/lib/utils/format'
 import CopyButton from './_components/CopyButton'
+import { ShopFlyerButton } from '@/components/dashboard/ShopFlyerButton'
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://souqly.fr'
 
@@ -348,7 +349,14 @@ export default async function DashboardPage() {
 
       {/* Lien catalogue */}
       <section className="bg-neutral-900 border border-white/5 rounded-xl p-5">
-        <h2 className="text-sm font-semibold text-white mb-1">Votre lien catalogue</h2>
+        <div className="flex items-start justify-between gap-4 mb-1 flex-wrap">
+          <h2 className="text-sm font-semibold text-white">Votre lien catalogue</h2>
+          <ShopFlyerButton
+            merchantName={merchant.name}
+            merchantSlug={merchant.slug}
+            merchantLogoUrl={merchant.logo_url}
+          />
+        </div>
         <p className="text-xs text-neutral-500 mb-3">Partagez ce lien pour que vos clients accèdent à votre boutique.</p>
         <div className="flex items-center gap-3 flex-wrap">
           <code className="flex-1 min-w-0 text-sm text-indigo-400 bg-neutral-800 border border-white/5 rounded-lg px-3 py-2 truncate font-mono">
