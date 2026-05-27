@@ -38,10 +38,12 @@ export function AddToCartButton({ product, merchantSlug }: AddToCartButtonProps)
     addItem(
       {
         productId: product.id,
+        cartKey: product.id,
         name: product.name,
         reference: product.reference,
         price_cents: product.price_cents,
         image_url: imageUrl,
+        selectedVariants: [],
       },
       quantity,
     )
