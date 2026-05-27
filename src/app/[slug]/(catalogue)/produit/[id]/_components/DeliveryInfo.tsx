@@ -27,26 +27,26 @@ export function DeliveryInfo({ merchant, product }: DeliveryInfoProps) {
   const tgUsername = merchant.telegram_username?.replace('@', '') ?? ''
 
   return (
-    <div className="space-y-3 pt-2 border-t border-white/5">
+    <div className="space-y-3 pt-2 border-t border-[var(--ct-border)]">
       {hasDelivery && (
-        <div className="rounded-xl bg-neutral-900 border border-white/5 divide-y divide-white/5">
+        <div className="rounded-xl bg-[var(--ct-surface)] border border-[var(--ct-border)] divide-y divide-[var(--ct-border)]">
           {merchant.click_and_collect_enabled && (
             <div className="flex items-center gap-3 px-4 py-3">
-              <Store className="h-4 w-4 text-neutral-400 shrink-0" />
+              <Store className="h-4 w-4 text-[var(--ct-text-muted)] shrink-0" />
               <div>
-                <p className="text-sm text-white font-medium">Click &amp; Collect</p>
-                <p className="text-xs text-neutral-500">Retrait en boutique — Gratuit</p>
+                <p className="text-sm text-[var(--ct-text)] font-medium">Click &amp; Collect</p>
+                <p className="text-xs text-[var(--ct-text-muted)]">Retrait en boutique — Gratuit</p>
               </div>
             </div>
           )}
           {merchant.self_delivery_enabled && (
             <div className="flex items-center gap-3 px-4 py-3">
-              <Truck className="h-4 w-4 text-neutral-400 shrink-0" />
+              <Truck className="h-4 w-4 text-[var(--ct-text-muted)] shrink-0" />
               <div>
-                <p className="text-sm text-white font-medium">
+                <p className="text-sm text-[var(--ct-text)] font-medium">
                   Livraison{merchant.self_delivery_city ? ` — ${merchant.self_delivery_city}` : ''}
                 </p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-[var(--ct-text-muted)]">
                   {merchant.self_delivery_price_cents
                     ? formatPrice(merchant.self_delivery_price_cents)
                     : 'Gratuit'}
@@ -56,10 +56,10 @@ export function DeliveryInfo({ merchant, product }: DeliveryInfoProps) {
           )}
           {merchant.colissimo_enabled && (
             <div className="flex items-center gap-3 px-4 py-3">
-              <Package className="h-4 w-4 text-neutral-400 shrink-0" />
+              <Package className="h-4 w-4 text-[var(--ct-text-muted)] shrink-0" />
               <div>
-                <p className="text-sm text-white font-medium">Colissimo</p>
-                <p className="text-xs text-neutral-500">
+                <p className="text-sm text-[var(--ct-text)] font-medium">Colissimo</p>
+                <p className="text-xs text-[var(--ct-text-muted)]">
                   {merchant.colissimo_price_cents
                     ? formatPrice(merchant.colissimo_price_cents)
                     : 'Gratuit'}

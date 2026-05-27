@@ -10,7 +10,6 @@ import type {
   CatalogResult,
   CatalogMerchant,
   Category,
-  Brand,
   Product,
 } from '@/lib/types/catalog'
 import { formatPrice } from '@/lib/utils/format'
@@ -69,7 +68,7 @@ export async function generateMetadata({
   const { slug } = await params
   const supabase = await createClient()
   const { data } = await supabase
-    .from('merchants_public')
+    .from('merchants')
     .select('name, description')
     .eq('slug', slug)
     .single<{ name: string; description: string | null }>()
@@ -156,21 +155,24 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
   })().catch(() => {})
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
+    <main className="min-h-screen bg-[var(--ct-bg)] text-[var(--ct-text)]">
       {/* ================================================================
           Header marchand enrichi (sticky)
           ================================================================ */}
-      <header className="sticky top-0 z-30 border-b border-white/10 bg-neutral-900/80 backdrop-blur-md">
+      <header
+        className="sticky top-0 z-30 border-b border-[var(--ct-border)] backdrop-blur-md"
+        style={{ backgroundColor: 'color-mix(in srgb, var(--ct-surface) 85%, transparent)' }}
+      >
         <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-3">
           <div className="shrink-0">
             <MerchantAvatar merchant={merchant} size="sm" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white leading-tight truncate">
+            <p className="text-sm font-semibold text-[var(--ct-text)] leading-tight truncate">
               {merchant.name}
             </p>
             {merchant.description && (
-              <p className="text-xs text-neutral-400 leading-tight truncate">
+              <p className="text-xs text-[var(--ct-text-muted)] leading-tight truncate">
                 {truncate(merchant.description, 60)}
               </p>
             )}
@@ -183,16 +185,16 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
           Hero / Banner marque
           ================================================================ */}
       <section
-        className="bg-gradient-to-br from-neutral-900 via-neutral-900 to-indigo-950/30 border-b border-white/5 py-10 px-4"
+        className="bg-[var(--ct-surface)] border-b border-[var(--ct-border)] py-10 px-4"
         aria-label={`Boutique ${merchant.name}`}
       >
         <div className="max-w-6xl mx-auto flex flex-col items-center text-center gap-4">
           <MerchantAvatar merchant={merchant} size="lg" />
 
-          <h1 className="text-2xl font-bold text-white">{merchant.name}</h1>
+          <h1 className="text-2xl font-bold text-[var(--ct-text)]">{merchant.name}</h1>
 
           {merchant.description && (
-            <p className="text-sm text-neutral-400 max-w-xl leading-relaxed">
+            <p className="text-sm text-[var(--ct-text-muted)] max-w-xl leading-relaxed">
               {merchant.description}
             </p>
           )}
@@ -210,7 +212,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
                 Telegram disponible
               </span>
             )}
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-neutral-800/80 border border-white/10 text-neutral-300 text-xs font-medium">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--ct-surface)] border border-[var(--ct-border)] text-[var(--ct-text-muted)] text-xs font-medium">
               {totalAvailable} article{totalAvailable !== 1 ? 's' : ''} disponible{totalAvailable !== 1 ? 's' : ''}
             </span>
           </div>
@@ -241,7 +243,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
         {/* Grille catégories (uniquement si aucun filtre actif) */}
         {!categoryFilter && !brandFilter && !q && !min && !max && !sort && categories.length > 0 && (
           <section aria-label="Catégories">
-            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest mb-4">
+            <h2 className="text-xs font-semibold text-[var(--ct-text-muted)] uppercase tracking-widest mb-4">
               Catégories
             </h2>
             <Suspense fallback={<GridSkeleton count={categories.length} aspect="square" />}>
@@ -253,7 +255,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
         {/* Grille produits */}
         <section aria-label="Produits">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-semibold text-neutral-500 uppercase tracking-widest">
+            <h2 className="text-xs font-semibold text-[var(--ct-text-muted)] uppercase tracking-widest">
               {categoryFilter
                 ? (categories.find((c) => c.slug === categoryFilter)?.name ?? 'Produits')
                 : brandFilter
@@ -262,7 +264,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
                 ? `Résultats pour "${q}"`
                 : 'Tous les produits'}
             </h2>
-            <span className="text-xs text-neutral-600 tabular-nums">
+            <span className="text-xs text-[var(--ct-text-muted)] tabular-nums">
               {availableProducts.length} article{availableProducts.length !== 1 ? 's' : ''}
             </span>
           </div>
@@ -283,7 +285,7 @@ export default async function CataloguePage({ params, searchParams }: PageProps)
           Footer catalogue
           ================================================================ */}
       <footer className="py-8 text-center">
-        <p className="text-xs text-neutral-700">Propulsé par Souqly</p>
+        <p className="text-xs text-[var(--ct-text-muted)]">Propulsé par Souqly</p>
       </footer>
     </main>
   )
@@ -301,12 +303,11 @@ function MerchantAvatar({
   size: 'sm' | 'lg'
 }) {
   const dimension = size === 'lg' ? 64 : 40
-  const textClass = size === 'lg' ? 'text-xl font-bold' : 'text-sm font-semibold'
   const containerClass = size === 'lg' ? 'w-16 h-16 rounded-2xl' : 'w-10 h-10 rounded-xl'
 
   if (merchant.logo_url) {
     return (
-      <div className={`relative overflow-hidden shrink-0 ${containerClass} border border-white/10`}>
+      <div className={`relative overflow-hidden shrink-0 ${containerClass} border border-[var(--ct-border)]`}>
         <Image
           src={merchant.logo_url}
           alt={`Logo ${merchant.name}`}
@@ -321,10 +322,13 @@ function MerchantAvatar({
 
   return (
     <div
-      className={`shrink-0 flex items-center justify-center bg-indigo-600 ${containerClass}`}
+      className={`shrink-0 flex items-center justify-center ${containerClass}`}
+      style={{ backgroundColor: 'var(--ct-primary)', color: 'var(--ct-primary-fg)' }}
       aria-hidden="true"
     >
-      <span className={`text-white ${textClass}`}>{initials(merchant.name)}</span>
+      <span style={{ fontSize: size === 'lg' ? '1.25rem' : '0.875rem', fontWeight: 700 }}>
+        {initials(merchant.name)}
+      </span>
     </div>
   )
 }
@@ -346,9 +350,9 @@ function CategoryGrid({
         <a
           key={cat.id}
           href={`/${merchantSlug}/catalogue?cat=${cat.slug}`}
-          className="group block rounded-xl overflow-hidden bg-neutral-900 border border-white/5 hover:border-indigo-500/30 hover:shadow-lg hover:shadow-indigo-950/20 transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+          className="group block rounded-xl overflow-hidden bg-[var(--ct-surface)] border border-[var(--ct-border)] hover:border-[var(--ct-primary)] hover:shadow-lg transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ct-primary)]"
         >
-          <div className="aspect-square relative overflow-hidden bg-gradient-to-br from-indigo-900/30 to-neutral-800">
+          <div className="aspect-square relative overflow-hidden bg-[var(--ct-bg)]">
             {cat.cover_image_url ? (
               <Image
                 src={cat.cover_image_url}
@@ -359,7 +363,7 @@ function CategoryGrid({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
-                <span className="text-4xl font-bold text-neutral-700" aria-hidden="true">
+                <span className="text-4xl font-bold text-[var(--ct-text-muted)]" aria-hidden="true">
                   {cat.name.charAt(0).toUpperCase()}
                 </span>
               </div>
@@ -434,14 +438,14 @@ function ProductCard({
   imageUrl: string | null
 }) {
   return (
-    <article className="group relative rounded-xl overflow-hidden bg-neutral-900 border border-white/5 hover:border-indigo-500/30 hover:shadow-md hover:shadow-indigo-950/20 transition-all duration-200">
+    <article className="group relative rounded-xl overflow-hidden bg-[var(--ct-surface)] border border-[var(--ct-border)] hover:border-[var(--ct-primary)] hover:shadow-md transition-all duration-200">
       <a
         href={`/${merchantSlug}/produit/${product.id}`}
-        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-inset"
+        className="block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ct-primary)] focus-visible:ring-inset"
         aria-label={`Voir le produit ${product.name}`}
       >
         {/* Image portrait 3:4 */}
-        <div className="aspect-[3/4] relative overflow-hidden bg-neutral-800">
+        <div className="aspect-[3/4] relative overflow-hidden bg-[var(--ct-bg)]">
           {imageUrl ? (
             <Image
               src={imageUrl}
@@ -451,8 +455,8 @@ function ProductCard({
               sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-indigo-900/20 to-neutral-800">
-              <span className="text-4xl font-bold text-neutral-700" aria-hidden="true">?</span>
+            <div className="w-full h-full flex items-center justify-center">
+              <span className="text-4xl font-bold text-[var(--ct-text-muted)]" aria-hidden="true">?</span>
             </div>
           )}
 
@@ -471,17 +475,15 @@ function ProductCard({
       {/* Infos produit */}
       <div className="p-3 flex items-end justify-between gap-2">
         <div className="min-w-0 flex-1">
-          <p
-            className="text-sm font-medium text-white leading-snug line-clamp-2"
-          >
+          <p className="text-sm font-medium text-[var(--ct-text)] leading-snug line-clamp-2">
             {product.name}
           </p>
           {product.reference && (
-            <p className="text-xs font-mono text-neutral-600 mt-0.5 truncate">
+            <p className="text-xs font-mono text-[var(--ct-text-muted)] mt-0.5 truncate">
               {product.reference}
             </p>
           )}
-          <p className="text-base font-bold text-white mt-1 tabular-nums">
+          <p className="text-base font-bold text-[var(--ct-text)] mt-1 tabular-nums">
             {formatPrice(product.price_cents)}
           </p>
         </div>
@@ -504,14 +506,14 @@ function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-4 text-center">
-      <Package className="w-12 h-12 text-neutral-700" aria-hidden="true" />
+      <Package className="w-12 h-12 text-[var(--ct-text-muted)]" aria-hidden="true" />
       <div className="space-y-1">
-        <p className="text-sm text-neutral-400 font-medium">
+        <p className="text-sm text-[var(--ct-text-muted)] font-medium">
           {hasActiveFilter
             ? 'Aucun produit ne correspond à ces filtres.'
             : 'Aucun produit disponible pour le moment.'}
         </p>
-        <p className="text-xs text-neutral-600">
+        <p className="text-xs text-[var(--ct-text-muted)]">
           {hasActiveFilter
             ? 'Essayez d\'élargir ou de réinitialiser les filtres.'
             : 'Revenez prochainement.'}
@@ -520,7 +522,7 @@ function EmptyState({
       {hasActiveFilter && (
         <a
           href={`/${merchantSlug}/catalogue`}
-          className="mt-2 text-xs text-indigo-400 hover:text-indigo-300 underline underline-offset-2 transition-colors"
+          className="mt-2 text-xs text-[var(--ct-primary)] hover:opacity-80 underline underline-offset-2 transition-opacity"
         >
           Voir tous les produits
         </a>
@@ -540,14 +542,14 @@ function GridSkeleton({ count, aspect }: { count: number; aspect: 'square' | 'po
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="rounded-xl overflow-hidden bg-neutral-900 border border-white/5 animate-pulse"
+          className="rounded-xl overflow-hidden bg-[var(--ct-surface)] border border-[var(--ct-border)] animate-pulse"
           aria-hidden="true"
         >
-          <div className={`${aspectClass} bg-neutral-800`} />
+          <div className={`${aspectClass} bg-[var(--ct-bg)]`} />
           <div className="p-3 space-y-2">
-            <div className="h-3 bg-neutral-800 rounded-full w-3/4" />
-            <div className="h-3 bg-neutral-800 rounded-full w-1/2" />
-            <div className="h-4 bg-neutral-800 rounded-full w-1/3" />
+            <div className="h-3 bg-[var(--ct-bg)] rounded-full w-3/4" />
+            <div className="h-3 bg-[var(--ct-bg)] rounded-full w-1/2" />
+            <div className="h-4 bg-[var(--ct-bg)] rounded-full w-1/3" />
           </div>
         </div>
       ))}
@@ -559,13 +561,13 @@ function FilterBarSkeleton() {
   return (
     <div className="space-y-3">
       <div className="flex gap-2">
-        <div className="flex-1 h-9 rounded-xl bg-neutral-900 animate-pulse" />
-        <div className="h-9 w-24 rounded-xl bg-neutral-900 animate-pulse" />
-        <div className="h-9 w-32 rounded-xl bg-neutral-900 animate-pulse" />
+        <div className="flex-1 h-9 rounded-xl bg-[var(--ct-surface)] animate-pulse" />
+        <div className="h-9 w-24 rounded-xl bg-[var(--ct-surface)] animate-pulse" />
+        <div className="h-9 w-32 rounded-xl bg-[var(--ct-surface)] animate-pulse" />
       </div>
       <div className="flex gap-2 overflow-hidden">
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-7 w-20 shrink-0 rounded-full bg-neutral-800 animate-pulse" aria-hidden="true" />
+          <div key={i} className="h-7 w-20 shrink-0 rounded-full bg-[var(--ct-surface)] animate-pulse" aria-hidden="true" />
         ))}
       </div>
     </div>

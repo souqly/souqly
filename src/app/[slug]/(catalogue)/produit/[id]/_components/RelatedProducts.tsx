@@ -29,9 +29,9 @@ export function RelatedProducts({
   if (related.length === 0) return null
 
   return (
-    <section className="border-t border-white/5">
+    <section className="border-t border-[var(--ct-border)]">
       <div className="max-w-6xl mx-auto px-4 py-10">
-        <h2 className="text-base font-semibold text-white mb-5">
+        <h2 className="text-base font-semibold text-[var(--ct-text)] mb-5">
           {categoryName ? `Autres articles — ${categoryName}` : 'Vous aimerez aussi'}
         </h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
@@ -44,7 +44,7 @@ export function RelatedProducts({
                 href={`/${merchantSlug}/produit/${product.id}`}
                 className="group flex flex-col gap-2"
               >
-                <div className="relative aspect-square rounded-xl overflow-hidden bg-neutral-900 border border-white/5 group-hover:border-white/20 transition-colors">
+                <div className="relative aspect-square rounded-xl overflow-hidden bg-[var(--ct-surface)] border border-[var(--ct-border)] group-hover:border-[var(--ct-primary)] transition-colors">
                   {primaryImage ? (
                     <Image
                       src={storageUrl(primaryImage.storage_path)}
@@ -55,13 +55,13 @@ export function RelatedProducts({
                     />
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="text-3xl text-neutral-700">?</span>
+                      <span className="text-3xl text-[var(--ct-text-muted)]">?</span>
                     </div>
                   )}
                 </div>
                 <div>
-                  <p className="text-xs text-white font-medium truncate">{product.name}</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">
+                  <p className="text-xs text-[var(--ct-text)] font-medium truncate">{product.name}</p>
+                  <p className="text-xs text-[var(--ct-text-muted)] mt-0.5">
                     {formatPrice(product.price_cents)}
                   </p>
                 </div>

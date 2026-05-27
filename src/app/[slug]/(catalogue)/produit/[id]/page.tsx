@@ -82,11 +82,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
     : catalogData.products
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white pb-20 md:pb-0">
+    <main className="min-h-screen bg-[var(--ct-bg)] text-[var(--ct-text)] pb-20 md:pb-0">
       {/* Breadcrumb sticky */}
-      <div className="border-b border-white/5 bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-neutral-500">
-          <a href={`/${slug}/catalogue`} className="hover:text-white transition-colors">
+      <div className="border-b border-[var(--ct-border)] backdrop-blur-sm sticky top-0 z-10" style={{ backgroundColor: 'color-mix(in srgb, var(--ct-surface) 80%, transparent)' }}>
+        <div className="max-w-6xl mx-auto px-4 py-3 flex items-center gap-2 text-sm text-[var(--ct-text-muted)]">
+          <a href={`/${slug}/catalogue`} className="hover:text-[var(--ct-text)] transition-colors">
             Catalogue
           </a>
           {category && (
@@ -94,14 +94,14 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <span>/</span>
               <a
                 href={`/${slug}/catalogue?cat=${category.slug}`}
-                className="hover:text-white transition-colors"
+                className="hover:text-[var(--ct-text)] transition-colors"
               >
                 {category.name}
               </a>
             </>
           )}
           <span>/</span>
-          <span className="text-white truncate max-w-[200px]">{product.name}</span>
+          <span className="text-[var(--ct-text)] truncate max-w-[200px]">{product.name}</span>
         </div>
       </div>
 
@@ -122,7 +122,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 {category && (
                   <a
                     href={`/${slug}/catalogue?cat=${category.slug}`}
-                    className="inline-flex items-center text-xs font-medium text-neutral-400 bg-neutral-800 hover:bg-neutral-700 border border-white/5 rounded-full px-3 py-1 transition-colors"
+                    className="inline-flex items-center text-xs font-medium text-[var(--ct-text-muted)] bg-[var(--ct-surface)] hover:border-[var(--ct-primary)] border border-[var(--ct-border)] rounded-full px-3 py-1 transition-colors"
                   >
                     {category.name}
                   </a>
@@ -130,7 +130,8 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 {brand && (
                   <a
                     href={`/${slug}/catalogue?brand=${brand.slug}`}
-                    className="inline-flex items-center text-xs font-medium text-indigo-400 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-full px-3 py-1 transition-colors"
+                    className="inline-flex items-center text-xs font-medium text-[var(--ct-primary)] border border-[var(--ct-primary)] rounded-full px-3 py-1 transition-colors hover:opacity-80"
+                    style={{ backgroundColor: 'color-mix(in srgb, var(--ct-primary) 12%, transparent)' }}
                   >
                     {brand.name}
                   </a>
@@ -140,15 +141,15 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
             {/* Nom + référence */}
             <div>
-              <h1 className="text-2xl font-bold text-white leading-snug">{product.name}</h1>
+              <h1 className="text-2xl font-bold text-[var(--ct-text)] leading-snug">{product.name}</h1>
               {product.reference && (
-                <p className="mt-1 text-sm font-mono text-neutral-500">Réf. {product.reference}</p>
+                <p className="mt-1 text-sm font-mono text-[var(--ct-text-muted)]">Réf. {product.reference}</p>
               )}
             </div>
 
             {/* Prix + disponibilité */}
             <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-white">
+              <span className="text-3xl font-bold text-[var(--ct-text)]">
                 {formatPrice(product.price_cents)}
               </span>
               <div className="flex items-center gap-1.5">
@@ -158,7 +159,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                   }`}
                   aria-hidden="true"
                 />
-                <span className="text-sm text-neutral-400">
+                <span className="text-sm text-[var(--ct-text-muted)]">
                   {product.is_available ? 'En stock' : 'Indisponible'}
                 </span>
               </div>
@@ -167,7 +168,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             {/* Description */}
             {product.description && (
               <div className="prose prose-sm prose-invert max-w-none">
-                <p className="text-neutral-300 leading-relaxed whitespace-pre-wrap">
+                <p className="text-[var(--ct-text-muted)] leading-relaxed whitespace-pre-wrap">
                   {product.description}
                 </p>
               </div>
@@ -181,7 +182,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
                 primaryImageUrl={primaryImage?.storage_path ?? null}
               />
             ) : (
-              <div className="rounded-xl bg-neutral-900 border border-white/5 px-4 py-3 text-sm text-neutral-500">
+              <div className="rounded-xl bg-[var(--ct-surface)] border border-[var(--ct-border)] px-4 py-3 text-sm text-[var(--ct-text-muted)]">
                 Ce produit est actuellement indisponible.
               </div>
             )}

@@ -37,11 +37,10 @@ export function QuickAddButton({ product, merchantSlug, imageUrl }: QuickAddButt
       type="button"
       onClick={handleClick}
       aria-label={added ? `${product.name} ajouté au panier` : `Ajouter ${product.name} au panier`}
-      className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900 ${
-        added
-          ? 'bg-emerald-600 scale-95'
-          : 'bg-indigo-600 hover:bg-indigo-500 active:scale-95'
+      className={`flex items-center justify-center w-8 h-8 rounded-full transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ct-primary)] ${
+        added ? 'scale-95' : 'active:scale-95'
       }`}
+      style={added ? { backgroundColor: '#16a34a' } : { backgroundColor: 'var(--ct-primary)', color: 'var(--ct-primary-fg)' }}
     >
       {added ? (
         <Check className="w-4 h-4 text-white" aria-hidden="true" />

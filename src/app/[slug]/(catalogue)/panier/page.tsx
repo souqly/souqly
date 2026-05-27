@@ -125,10 +125,10 @@ export default function PanierPage() {
 
   if (!mounted) {
     return (
-      <main className="min-h-screen bg-neutral-950 text-white">
+      <main className="min-h-screen bg-[var(--ct-bg)] text-[var(--ct-text)]">
         <div className="max-w-2xl mx-auto px-4 py-12 space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 rounded-xl bg-neutral-900 animate-pulse" />
+            <div key={i} className="h-20 rounded-xl bg-[var(--ct-surface)] animate-pulse" />
           ))}
         </div>
       </main>
@@ -136,20 +136,20 @@ export default function PanierPage() {
   }
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-white">
+    <main className="min-h-screen bg-[var(--ct-bg)] text-[var(--ct-text)]">
       {/* Header */}
-      <div className="border-b border-white/5 bg-neutral-900/50 backdrop-blur-sm sticky top-0 z-10">
+      <div className="border-b border-[var(--ct-border)] backdrop-blur-sm sticky top-0 z-10" style={{ backgroundColor: 'color-mix(in srgb, var(--ct-surface) 80%, transparent)' }}>
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center justify-between">
           <a
             href={`/${slug}/catalogue`}
-            className="text-sm text-neutral-400 hover:text-white transition-colors"
+            className="text-sm text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] transition-colors"
           >
             ← Continuer les achats
           </a>
           <h1 className="text-lg font-semibold">
             Mon panier
             {itemCount > 0 && (
-              <span className="ml-2 text-sm font-normal text-neutral-400">
+              <span className="ml-2 text-sm font-normal text-[var(--ct-text-muted)]">
                 ({itemCount} article{itemCount !== 1 ? 's' : ''})
               </span>
             )}
@@ -161,13 +161,13 @@ export default function PanierPage() {
         {/* Panier vide */}
         {cart.items.length === 0 ? (
           <div className="text-center py-20 space-y-4">
-            <div className="h-16 w-16 rounded-2xl bg-neutral-900 flex items-center justify-center mx-auto">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-neutral-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
+            <div className="h-16 w-16 rounded-2xl bg-[var(--ct-surface)] flex items-center justify-center mx-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-[var(--ct-text-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z" />
               </svg>
             </div>
-            <p className="text-neutral-400">Votre panier est vide.</p>
-            <a href={`/${slug}/catalogue`} className="inline-block rounded-xl bg-white text-neutral-950 px-6 py-2.5 text-sm font-semibold hover:bg-neutral-200 transition-colors">
+            <p className="text-[var(--ct-text-muted)]">Votre panier est vide.</p>
+            <a href={`/${slug}/catalogue`} className="inline-block rounded-xl px-6 py-2.5 text-sm font-semibold transition-colors hover:opacity-90" style={{ backgroundColor: 'var(--ct-primary)', color: 'var(--ct-primary-fg)' }}>
               Voir le catalogue
             </a>
           </div>
@@ -177,7 +177,7 @@ export default function PanierPage() {
             <section aria-label="Articles du panier" className="space-y-3">
               {cart.items.map((item) => (
                 <CartItemRow
-                  key={item.productId}
+                  key={item.cartKey ?? item.productId}
                   item={item}
                   onRemove={removeFromCart}
                   onUpdateQuantity={updateQuantity}
@@ -188,8 +188,8 @@ export default function PanierPage() {
 
             {/* Mode de livraison */}
             {hasDeliveryOptions && (
-              <section aria-label="Mode de livraison" className="bg-neutral-900 border border-white/5 rounded-2xl p-4 space-y-3">
-                <h2 className="text-sm font-semibold text-white">Mode de livraison</h2>
+              <section aria-label="Mode de livraison" className="bg-[var(--ct-surface)] border border-[var(--ct-border)] rounded-2xl p-4 space-y-3">
+                <h2 className="text-sm font-semibold text-[var(--ct-text)]">Mode de livraison</h2>
                 <div className="space-y-2">
                   {merchant.click_and_collect_enabled && (
                     <DeliveryOption
@@ -229,7 +229,7 @@ export default function PanierPage() {
                 {/* Formulaire adresse Colissimo */}
                 {deliveryMethod === 'colissimo' && (
                   <div className="mt-3">
-                    <label htmlFor="delivery-address" className="block text-xs text-neutral-500 mb-1.5">
+                    <label htmlFor="delivery-address" className="block text-xs text-[var(--ct-text-muted)] mb-1.5">
                       Adresse de livraison
                     </label>
                     <textarea
@@ -239,7 +239,7 @@ export default function PanierPage() {
                       placeholder="Nom, rue, code postal, ville"
                       maxLength={300}
                       rows={3}
-                      className="w-full rounded-xl bg-neutral-800 border border-white/10 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-white/30 transition-colors resize-none"
+                      className="w-full rounded-xl bg-[var(--ct-bg)] border border-[var(--ct-border)] px-4 py-3 text-sm text-[var(--ct-text)] placeholder-[var(--ct-text-muted)] focus:outline-none focus:border-[var(--ct-primary)] transition-colors resize-none"
                     />
                   </div>
                 )}
@@ -247,35 +247,35 @@ export default function PanierPage() {
             )}
 
             {/* Récapitulatif total */}
-            <div className="bg-neutral-900 border border-white/5 rounded-2xl p-4 space-y-2">
+            <div className="bg-[var(--ct-surface)] border border-[var(--ct-border)] rounded-2xl p-4 space-y-2">
               <div className="flex justify-between items-center text-sm">
-                <span className="text-neutral-400">Sous-total articles</span>
-                <span className="text-white">{formatPrice(totalCents)}</span>
+                <span className="text-[var(--ct-text-muted)]">Sous-total articles</span>
+                <span className="text-[var(--ct-text)]">{formatPrice(totalCents)}</span>
               </div>
               {deliveryMethod && deliveryCents() > 0 && (
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-400">Frais de livraison</span>
-                  <span className="text-white">{formatPrice(deliveryCents())}</span>
+                  <span className="text-[var(--ct-text-muted)]">Frais de livraison</span>
+                  <span className="text-[var(--ct-text)]">{formatPrice(deliveryCents())}</span>
                 </div>
               )}
               {deliveryMethod === 'colissimo' && merchant.colissimo_price_cents === null && (
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-neutral-400">Frais Colissimo</span>
-                  <span className="text-neutral-400 italic">À confirmer</span>
+                  <span className="text-[var(--ct-text-muted)]">Frais Colissimo</span>
+                  <span className="text-[var(--ct-text-muted)] italic">À confirmer</span>
                 </div>
               )}
-              <div className="border-t border-white/5 pt-2 flex justify-between items-center">
-                <span className="text-white font-semibold">Total</span>
-                <span className="text-xl font-bold text-white">{formatPrice(totalWithDelivery)}</span>
+              <div className="border-t border-[var(--ct-border)] pt-2 flex justify-between items-center">
+                <span className="text-[var(--ct-text)] font-semibold">Total</span>
+                <span className="text-xl font-bold text-[var(--ct-text)]">{formatPrice(totalWithDelivery)}</span>
               </div>
             </div>
 
             {/* Informations client */}
             <div className="space-y-4">
-              <h2 className="text-sm font-medium text-neutral-300">Informations (optionnelles)</h2>
+              <h2 className="text-sm font-medium text-[var(--ct-text)]">Informations (optionnelles)</h2>
               <div className="space-y-3">
                 <div>
-                  <label htmlFor="client-name" className="block text-xs text-neutral-500 mb-1">
+                  <label htmlFor="client-name" className="block text-xs text-[var(--ct-text-muted)] mb-1">
                     Votre nom
                   </label>
                   <input
@@ -285,11 +285,11 @@ export default function PanierPage() {
                     onChange={(e) => setClientName(e.target.value)}
                     placeholder="Ex : Marie Dupont"
                     maxLength={100}
-                    className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-white/30 transition-colors"
+                    className="w-full rounded-xl bg-[var(--ct-bg)] border border-[var(--ct-border)] px-4 py-3 text-sm text-[var(--ct-text)] placeholder-[var(--ct-text-muted)] focus:outline-none focus:border-[var(--ct-primary)] transition-colors"
                   />
                 </div>
                 <div>
-                  <label htmlFor="notes" className="block text-xs text-neutral-500 mb-1">
+                  <label htmlFor="notes" className="block text-xs text-[var(--ct-text-muted)] mb-1">
                     Remarque (taille, couleur…)
                   </label>
                   <textarea
@@ -299,7 +299,7 @@ export default function PanierPage() {
                     placeholder="Ex : Taille M pour le t-shirt"
                     maxLength={500}
                     rows={3}
-                    className="w-full rounded-xl bg-neutral-900 border border-white/10 px-4 py-3 text-sm text-white placeholder-neutral-600 focus:outline-none focus:border-white/30 transition-colors resize-none"
+                    className="w-full rounded-xl bg-[var(--ct-bg)] border border-[var(--ct-border)] px-4 py-3 text-sm text-[var(--ct-text)] placeholder-[var(--ct-text-muted)] focus:outline-none focus:border-[var(--ct-primary)] transition-colors resize-none"
                   />
                 </div>
               </div>
@@ -307,12 +307,12 @@ export default function PanierPage() {
 
             {/* Aperçu message */}
             <details className="group">
-              <summary className="text-xs text-neutral-500 cursor-pointer hover:text-neutral-300 transition-colors list-none flex items-center gap-2">
+              <summary className="text-xs text-[var(--ct-text-muted)] cursor-pointer hover:text-[var(--ct-text)] transition-colors list-none flex items-center gap-2">
                 <span className="group-open:hidden">▶</span>
                 <span className="hidden group-open:inline">▼</span>
                 Aperçu du message de commande
               </summary>
-              <pre className="mt-3 text-xs text-neutral-400 bg-neutral-900/50 border border-white/5 rounded-xl p-4 whitespace-pre-wrap font-mono overflow-auto max-h-48">
+              <pre className="mt-3 text-xs text-[var(--ct-text-muted)] bg-[var(--ct-surface)] border border-[var(--ct-border)] rounded-xl p-4 whitespace-pre-wrap font-mono overflow-auto max-h-48">
                 {buildOrderMessage()}
               </pre>
             </details>
@@ -342,7 +342,7 @@ export default function PanierPage() {
                 </button>
               )}
               {!merchant.whatsapp_number && !merchant.telegram_username && (
-                <p className="text-sm text-neutral-500 text-center py-4">
+                <p className="text-sm text-[var(--ct-text-muted)] text-center py-4">
                   Le marchand n&apos;a pas encore configuré de canal de commande.
                 </p>
               )}
@@ -353,7 +353,7 @@ export default function PanierPage() {
               <button
                 type="button"
                 onClick={clearCart}
-                className="text-xs text-neutral-600 hover:text-neutral-400 transition-colors"
+                className="text-xs text-[var(--ct-text-muted)] hover:opacity-80 transition-opacity"
               >
                 Vider le panier
               </button>
@@ -399,8 +399,8 @@ function DeliveryOption({
       className={[
         'flex items-center justify-between gap-3 p-3 rounded-xl border cursor-pointer transition-colors',
         selected
-          ? 'bg-indigo-600/10 border-indigo-500/40'
-          : 'bg-neutral-800/40 border-white/5 hover:border-white/10',
+          ? 'border-[var(--ct-primary)]'
+          : 'bg-[var(--ct-surface)] border-[var(--ct-border)] hover:border-[var(--ct-primary)]',
       ].join(' ')}
     >
       <div className="flex items-center gap-3 min-w-0">
@@ -411,16 +411,16 @@ function DeliveryOption({
           value={value}
           checked={selected}
           onChange={() => onSelect(value)}
-          className="accent-indigo-500 flex-shrink-0"
+          className="flex-shrink-0 accent-[var(--ct-primary)]"
         />
         <div className="min-w-0">
-          <p className="text-sm font-medium text-white">{label}</p>
-          <p className="text-xs text-neutral-500">{sublabel}</p>
+          <p className="text-sm font-medium text-[var(--ct-text)]">{label}</p>
+          <p className="text-xs text-[var(--ct-text-muted)]">{sublabel}</p>
         </div>
       </div>
       <span className={[
         'text-sm font-semibold flex-shrink-0',
-        price === 0 ? 'text-green-400' : 'text-neutral-300',
+        price === 0 ? 'text-green-400' : 'text-[var(--ct-text)]',
       ].join(' ')}>
         {priceLabel}
       </span>
@@ -444,35 +444,35 @@ function CartItemRow({
   merchantSlug: string
 }) {
   return (
-    <div className="flex gap-3 bg-neutral-900 border border-white/5 rounded-xl p-3">
-      <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-neutral-800">
+    <div className="flex gap-3 bg-[var(--ct-surface)] border border-[var(--ct-border)] rounded-xl p-3">
+      <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--ct-bg)]">
         {item.image_url ? (
           <Image src={item.image_url} alt={item.name} width={64} height={64} className="h-full w-full object-cover" />
         ) : (
           <div className="h-full w-full flex items-center justify-center">
-            <span className="text-xl font-bold text-neutral-700">?</span>
+            <span className="text-xl font-bold text-[var(--ct-text-muted)]">?</span>
           </div>
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <a href={`/${merchantSlug}/produit/${item.productId}`} className="text-sm font-medium text-white hover:underline truncate block">
+        <a href={`/${merchantSlug}/produit/${item.productId}`} className="text-sm font-medium text-[var(--ct-text)] hover:underline truncate block">
           {item.name}
         </a>
         {item.reference && (
-          <p className="text-xs font-mono text-neutral-500 mt-0.5">Réf. {item.reference}</p>
+          <p className="text-xs font-mono text-[var(--ct-text-muted)] mt-0.5">Réf. {item.reference}</p>
         )}
-        <p className="text-xs text-neutral-400 mt-0.5">{formatPrice(item.price_cents)}/u</p>
+        <p className="text-xs text-[var(--ct-text-muted)] mt-0.5">{formatPrice(item.price_cents)}/u</p>
       </div>
 
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
-        <div className="flex items-center gap-1 bg-neutral-800 rounded-lg p-0.5">
-          <button type="button" onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)} disabled={item.quantity <= 1} className="h-6 w-6 flex items-center justify-center rounded text-neutral-400 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors" aria-label="Diminuer">−</button>
-          <span className="w-6 text-center text-xs font-medium text-white">{item.quantity}</span>
-          <button type="button" onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)} className="h-6 w-6 flex items-center justify-center rounded text-neutral-400 hover:text-white text-xs transition-colors" aria-label="Augmenter">+</button>
+        <div className="flex items-center gap-1 bg-[var(--ct-bg)] rounded-lg p-0.5">
+          <button type="button" onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)} disabled={item.quantity <= 1} className="h-6 w-6 flex items-center justify-center rounded text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors" aria-label="Diminuer">−</button>
+          <span className="w-6 text-center text-xs font-medium text-[var(--ct-text)]">{item.quantity}</span>
+          <button type="button" onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)} className="h-6 w-6 flex items-center justify-center rounded text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] text-xs transition-colors" aria-label="Augmenter">+</button>
         </div>
-        <p className="text-xs font-semibold text-white">{formatPrice(item.price_cents * item.quantity)}</p>
-        <button type="button" onClick={() => onRemove(item.productId)} className="text-xs text-neutral-600 hover:text-red-400 transition-colors" aria-label={`Supprimer ${item.name}`}>
+        <p className="text-xs font-semibold text-[var(--ct-text)]">{formatPrice(item.price_cents * item.quantity)}</p>
+        <button type="button" onClick={() => onRemove(item.productId)} className="text-xs text-[var(--ct-text-muted)] hover:text-red-400 transition-colors" aria-label={`Supprimer ${item.name}`}>
           Supprimer
         </button>
       </div>
