@@ -439,10 +439,12 @@ function CartItemRow({
   merchantSlug,
 }: {
   item: CartItem
-  onRemove: (id: string) => void
-  onUpdateQuantity: (id: string, qty: number) => void
+  onRemove: (cartKey: string) => void
+  onUpdateQuantity: (cartKey: string, qty: number) => void
   merchantSlug: string
 }) {
+  const cartKey = item.cartKey ?? item.productId
+
   return (
     <div className="flex gap-3 bg-[var(--ct-surface)] border border-[var(--ct-border)] rounded-xl p-3">
       <div className="h-16 w-16 flex-shrink-0 rounded-lg overflow-hidden bg-[var(--ct-bg)]">
@@ -462,17 +464,22 @@ function CartItemRow({
         {item.reference && (
           <p className="text-xs font-mono text-[var(--ct-text-muted)] mt-0.5">Réf. {item.reference}</p>
         )}
+        {item.selectedVariants && item.selectedVariants.length > 0 && (
+          <p className="text-xs text-[var(--ct-text-muted)] mt-0.5">
+            {item.selectedVariants.map((v) => `${v.typeName}: ${v.optionLabel}`).join(' · ')}
+          </p>
+        )}
         <p className="text-xs text-[var(--ct-text-muted)] mt-0.5">{formatPrice(item.price_cents)}/u</p>
       </div>
 
       <div className="flex flex-col items-end gap-2 flex-shrink-0">
         <div className="flex items-center gap-1 bg-[var(--ct-bg)] rounded-lg p-0.5">
-          <button type="button" onClick={() => onUpdateQuantity(item.productId, item.quantity - 1)} disabled={item.quantity <= 1} className="h-6 w-6 flex items-center justify-center rounded text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors" aria-label="Diminuer">−</button>
+          <button type="button" onClick={() => onUpdateQuantity(cartKey, item.quantity - 1)} disabled={item.quantity <= 1} className="h-6 w-6 flex items-center justify-center rounded text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] disabled:opacity-30 disabled:cursor-not-allowed text-xs transition-colors" aria-label="Diminuer">−</button>
           <span className="w-6 text-center text-xs font-medium text-[var(--ct-text)]">{item.quantity}</span>
-          <button type="button" onClick={() => onUpdateQuantity(item.productId, item.quantity + 1)} className="h-6 w-6 flex items-center justify-center rounded text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] text-xs transition-colors" aria-label="Augmenter">+</button>
+          <button type="button" onClick={() => onUpdateQuantity(cartKey, item.quantity + 1)} className="h-6 w-6 flex items-center justify-center rounded text-[var(--ct-text-muted)] hover:text-[var(--ct-text)] text-xs transition-colors" aria-label="Augmenter">+</button>
         </div>
         <p className="text-xs font-semibold text-[var(--ct-text)]">{formatPrice(item.price_cents * item.quantity)}</p>
-        <button type="button" onClick={() => onRemove(item.productId)} className="text-xs text-[var(--ct-text-muted)] hover:text-red-400 transition-colors" aria-label={`Supprimer ${item.name}`}>
+        <button type="button" onClick={() => onRemove(cartKey)} className="text-xs text-[var(--ct-text-muted)] hover:text-red-400 transition-colors" aria-label={`Supprimer ${item.name}`}>
           Supprimer
         </button>
       </div>
