@@ -5,6 +5,7 @@ import { X, Loader2, Share2 } from 'lucide-react'
 import { createProduct, updateProduct } from '@/lib/actions/dashboard'
 import type { ProductRow, CategoryOption, BrandOption } from './ProductsTable'
 import { ProductImageManager } from './ProductImageManager'
+import { ProductVariantManager } from './ProductVariantManager'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -283,15 +284,18 @@ export function ProductFormModal({
             </div>
           </form>
 
-          {/* Image manager — edition mode only */}
+          {/* Image manager + Variant manager — edition mode only */}
           {isEditing && editProduct?.id && (
-            <div className="px-6 pb-6">
+            <div className="px-6 pb-6 space-y-6">
               <div className="border-t border-white/5 pt-5">
                 <ProductImageManager
                   productId={editProduct.id}
                   merchantId={merchantId}
                   images={editProduct.product_images ?? []}
                 />
+              </div>
+              <div className="border-t border-white/5 pt-5">
+                <ProductVariantManager productId={editProduct.id} />
               </div>
             </div>
           )}

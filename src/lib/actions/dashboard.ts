@@ -1049,6 +1049,210 @@ export async function deleteBrand(formData: FormData): Promise<ActionResult> {
 }
 
 // ---------------------------------------------------------------------------
+// VARIANTES PRODUIT
+// ---------------------------------------------------------------------------
+
+const createVariantTypeSchema = z.object({
+  productId: z.string().uuid('Identifiant produit invalide.'),
+  name: z.string().min(1, 'Le nom est requis.').max(50, 'Maximum 50 caractères.'),
+  position: z.coerce.number().int().min(0).default(0),
+})
+
+export async function createVariantType(
+  productId: string,
+  name: string,
+  position: number,
+): Promise<ActionResultWithId> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = createVariantTypeSchema.safeParse({ productId, name, position })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: product } = await supabase
+    .from('products')
+    .select('merchant_id')
+    .eq('id', parsed.data.productId)
+    .single<{ merchant_id: string }>()
+
+  if (!product || product.merchant_id !== auth.merchant.id) {
+    return { error: 'Produit introuvable.' }
+  }
+
+  const { data, error } = await supabase
+    .from('product_variant_types')
+    .insert({
+      product_id: parsed.data.productId,
+      name: parsed.data.name,
+      position: parsed.data.position,
+    })
+    .select('id')
+    .single<{ id: string }>()
+
+  if (error) return { error: 'Erreur lors de la création du type de variante.' }
+
+  revalidatePath('/dashboard/produits')
+  return { success: true, id: data.id }
+}
+
+const deleteVariantTypeSchema = z.string().uuid('Identifiant invalide.')
+
+export async function deleteVariantType(variantTypeId: string): Promise<ActionResult> {
+  const parsed = deleteVariantTypeSchema.safeParse(variantTypeId)
+  if (!parsed.success) return { error: 'Identifiant invalide.' }
+
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('product_variant_types')
+    .select('id, products(merchant_id)')
+    .eq('id', parsed.data)
+    .single<{ id: string; products: { merchant_id: string } | null }>()
+
+  if (!existing || existing.products?.merchant_id !== auth.merchant.id) {
+    return { error: 'Type de variante introuvable.' }
+  }
+
+  const { error } = await supabase
+    .from('product_variant_types')
+    .delete()
+    .eq('id', parsed.data)
+
+  if (error) return { error: 'Erreur lors de la suppression.' }
+
+  revalidatePath('/dashboard/produits')
+  return { success: true }
+}
+
+const addVariantOptionSchema = z.object({
+  variantTypeId: z.string().uuid('Identifiant invalide.'),
+  label: z.string().min(1, 'Le libellé est requis.').max(100, 'Maximum 100 caractères.'),
+  position: z.coerce.number().int().min(0).default(0),
+})
+
+export async function addVariantOption(
+  variantTypeId: string,
+  label: string,
+  position: number,
+): Promise<ActionResultWithId> {
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const parsed = addVariantOptionSchema.safeParse({ variantTypeId, label, position })
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? 'Données invalides.' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: vt } = await supabase
+    .from('product_variant_types')
+    .select('id, products(merchant_id)')
+    .eq('id', parsed.data.variantTypeId)
+    .single<{ id: string; products: { merchant_id: string } | null }>()
+
+  if (!vt || vt.products?.merchant_id !== auth.merchant.id) {
+    return { error: 'Type de variante introuvable.' }
+  }
+
+  const { data, error } = await supabase
+    .from('product_variant_options')
+    .insert({
+      variant_type_id: parsed.data.variantTypeId,
+      label: parsed.data.label,
+      position: parsed.data.position,
+    })
+    .select('id')
+    .single<{ id: string }>()
+
+  if (error) return { error: 'Erreur lors de l\'ajout de l\'option.' }
+
+  revalidatePath('/dashboard/produits')
+  return { success: true, id: data.id }
+}
+
+const variantOptionIdSchema = z.string().uuid('Identifiant invalide.')
+
+export async function toggleVariantOptionAvailability(
+  optionId: string,
+): Promise<ActionResultWithBool> {
+  const parsed = variantOptionIdSchema.safeParse(optionId)
+  if (!parsed.success) return { error: 'Identifiant invalide.' }
+
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('product_variant_options')
+    .select('id, is_available, product_variant_types(products(merchant_id))')
+    .eq('id', parsed.data)
+    .single<{
+      id: string
+      is_available: boolean
+      product_variant_types: { products: { merchant_id: string } | null } | null
+    }>()
+
+  const merchantId = existing?.product_variant_types?.products?.merchant_id
+  if (!existing || merchantId !== auth.merchant.id) {
+    return { error: 'Option introuvable.' }
+  }
+
+  const newValue = !existing.is_available
+  const { error } = await supabase
+    .from('product_variant_options')
+    .update({ is_available: newValue })
+    .eq('id', parsed.data)
+
+  if (error) return { error: 'Erreur lors de la mise à jour.' }
+
+  revalidatePath('/dashboard/produits')
+  return { success: true, is_available: newValue }
+}
+
+export async function deleteVariantOption(optionId: string): Promise<ActionResult> {
+  const parsed = variantOptionIdSchema.safeParse(optionId)
+  if (!parsed.success) return { error: 'Identifiant invalide.' }
+
+  const auth = await getAuthenticatedMerchant()
+  if ('error' in auth) return auth
+
+  const supabase = await createClient()
+
+  const { data: existing } = await supabase
+    .from('product_variant_options')
+    .select('id, product_variant_types(products(merchant_id))')
+    .eq('id', parsed.data)
+    .single<{
+      id: string
+      product_variant_types: { products: { merchant_id: string } | null } | null
+    }>()
+
+  const merchantId = existing?.product_variant_types?.products?.merchant_id
+  if (!existing || merchantId !== auth.merchant.id) {
+    return { error: 'Option introuvable.' }
+  }
+
+  const { error } = await supabase
+    .from('product_variant_options')
+    .delete()
+    .eq('id', parsed.data)
+
+  if (error) return { error: 'Erreur lors de la suppression.' }
+
+  revalidatePath('/dashboard/produits')
+  return { success: true }
+}
+
+// ---------------------------------------------------------------------------
 // LIVRAISON
 // ---------------------------------------------------------------------------
 

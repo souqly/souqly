@@ -19,8 +19,13 @@ function readCartFromStorage(slug: string): Cart {
     const raw = window.localStorage.getItem(getStorageKey(slug))
     if (!raw) return { merchantSlug: slug, items: [] }
     const parsed = JSON.parse(raw) as Cart
-    // Guard basique : s'assurer que items est bien un tableau
     if (!Array.isArray(parsed.items)) return { merchantSlug: slug, items: [] }
+    // Rétro-compatibilité : cartKey absent sur les anciens paniers
+    parsed.items = parsed.items.map((item) => ({
+      ...item,
+      cartKey: item.cartKey ?? item.productId,
+      selectedVariants: item.selectedVariants ?? [],
+    }))
     return parsed
   } catch {
     return { merchantSlug: slug, items: [] }
@@ -45,26 +50,18 @@ interface UseCartReturn {
   totalCents: number
   itemCount: number
   addToCart: (item: CartItem) => void
-  removeFromCart: (productId: string) => void
-  updateQuantity: (productId: string, quantity: number) => void
+  removeFromCart: (cartKey: string) => void
+  updateQuantity: (cartKey: string, quantity: number) => void
   clearCart: () => void
 }
 
-/**
- * useCart — gestion du panier persisté en localStorage.
- *
- * La clé de stockage est `cart_[merchantSlug]` pour isoler les paniers
- * entre les différents marchands.
- */
 export function useCart(merchantSlug: string): UseCartReturn {
   const [cart, setCart] = useState<Cart>(() => readCartFromStorage(merchantSlug))
 
-  // Synchronise le state avec localStorage à chaque changement
   useEffect(() => {
     writeCartToStorage(cart)
   }, [cart])
 
-  // Re-lit depuis localStorage au montage (SSR safety)
   useEffect(() => {
     const timer = window.setTimeout(() => setCart(readCartFromStorage(merchantSlug)), 0)
     return () => window.clearTimeout(timer)
@@ -76,13 +73,13 @@ export function useCart(merchantSlug: string): UseCartReturn {
 
   const addToCart = useCallback((item: CartItem) => {
     setCart((prev) => {
-      const existing = prev.items.find((i) => i.productId === item.productId)
+      const key = item.cartKey ?? item.productId
+      const existing = prev.items.find((i) => (i.cartKey ?? i.productId) === key)
       if (existing) {
-        // Incrémente la quantité si le produit est déjà dans le panier
         return {
           ...prev,
           items: prev.items.map((i) =>
-            i.productId === item.productId
+            (i.cartKey ?? i.productId) === key
               ? { ...i, quantity: i.quantity + item.quantity }
               : i,
           ),
@@ -92,19 +89,19 @@ export function useCart(merchantSlug: string): UseCartReturn {
     })
   }, [])
 
-  const removeFromCart = useCallback((productId: string) => {
+  const removeFromCart = useCallback((cartKey: string) => {
     setCart((prev) => ({
       ...prev,
-      items: prev.items.filter((i) => i.productId !== productId),
+      items: prev.items.filter((i) => (i.cartKey ?? i.productId) !== cartKey),
     }))
   }, [])
 
-  const updateQuantity = useCallback((productId: string, quantity: number) => {
+  const updateQuantity = useCallback((cartKey: string, quantity: number) => {
     if (quantity < 1) return
     setCart((prev) => ({
       ...prev,
       items: prev.items.map((i) =>
-        i.productId === productId ? { ...i, quantity } : i,
+        (i.cartKey ?? i.productId) === cartKey ? { ...i, quantity } : i,
       ),
     }))
   }, [])

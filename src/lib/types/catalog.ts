@@ -7,6 +7,20 @@ export type ProductImage = {
   is_primary: boolean
 }
 
+export type VariantOption = {
+  id: string
+  label: string
+  position: number
+  is_available: boolean
+}
+
+export type VariantType = {
+  id: string
+  name: string
+  position: number
+  options: VariantOption[]
+}
+
 export type Product = {
   id: string
   category_id: string | null
@@ -18,6 +32,7 @@ export type Product = {
   is_available: boolean
   position: number
   images: ProductImage[]
+  variants: VariantType[]
 }
 
 export type Category = {
@@ -66,13 +81,22 @@ export type CatalogData = {
 }
 
 // Panier (persisté en localStorage)
+export type SelectedVariant = {
+  typeName: string
+  optionLabel: string
+}
+
 export type CartItem = {
   productId: string
+  // Clé unique : productId pour les produits sans variantes,
+  // productId::typeId:optionId|... pour les produits avec variantes sélectionnées
+  cartKey: string
   name: string
   reference: string | null
   price_cents: number
   quantity: number
   image_url: string | null
+  selectedVariants: SelectedVariant[]
 }
 
 export type Cart = {

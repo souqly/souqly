@@ -34,8 +34,11 @@ export function generateOrderMessage(
   const productLines = items
     .map((item) => {
       const ref = item.reference ? ` (${item.reference})` : ''
+      const variants = item.selectedVariants?.length
+        ? ` [${item.selectedVariants.map((v) => `${v.typeName}: ${v.optionLabel}`).join(', ')}]`
+        : ''
       const unitPrice = formatPrice(item.price_cents)
-      return `- ${item.quantity}x ${item.name}${ref} — ${unitPrice}/u`
+      return `- ${item.quantity}x ${item.name}${ref}${variants} — ${unitPrice}/u`
     })
     .join('\n')
 
